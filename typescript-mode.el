@@ -20,6 +20,7 @@
 ;;     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; -------------------------------------------------------------------------------------------
 
+;; URL: http://github.com/ananthakumaran/typescript.el
 ;; Version: 0.1
 ;; Keywords: typescript languages
 ;; Package-Requires: ()
