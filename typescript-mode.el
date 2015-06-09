@@ -1,4 +1,4 @@
-;;; typescript.el --- Major mode for editing typescript
+;;; typescript-mode.el --- Major mode for editing typescript
 
 ;; -----------------------------------------------------------------------------------
 ;;     TypeScript support for Emacs
@@ -19,6 +19,12 @@
 ;;     You should have received a copy of the GNU General Public License
 ;;     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; -------------------------------------------------------------------------------------------
+
+;; Version: 0.1
+;; Keywords: typescript languages
+;; Package-Requires: ()
+
+;; This file is not part of GNU Emacs.
 
 ;;; Commentary:
 
@@ -2068,6 +2074,6 @@ Key bindings:
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ts$" . typescript-mode))
 
-(provide 'typescript)
+(provide 'typescript-mode)
 
-;;; typescript.el ends here
+;;; typescript-mode.el ends here
