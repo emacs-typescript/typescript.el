@@ -494,7 +494,7 @@ comment."
   (let ((table (make-syntax-table)))
     (c-populate-syntax-table table)
     (modify-syntax-entry ?$ "_" table)
-    (modify-syntax-entry ?` "\"")
+    (modify-syntax-entry ?` "\"" table)
     table)
   "Syntax table for `typescript-mode'.")
 
