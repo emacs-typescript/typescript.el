@@ -283,7 +283,7 @@ Match group 1 is the name of the macro.")
      "interface" "let" "module" "namespace" "new" "null" "number"
      "private" "protected" "public" "return" "static" "string"
      "super" "switch"  "this" "throw" "true"
-     "try" "typeof" "var" "void"
+     "try" "type" "typeof" "var" "void"
      "while" ))
   "Regexp matching any typescript keyword.")
 
