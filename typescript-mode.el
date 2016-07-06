@@ -1314,6 +1314,36 @@ LIMIT defaults to point."
     (when pitem
       (goto-char (typescript--pitem-h-begin pitem )))))
 
+(defun typescript--syntax-propertize-function (start end)
+  (let ((case-fold-search nil))
+    (goto-char start)
+    (remove-text-properties start end '(typescript-interpolation))
+    (funcall
+     (syntax-propertize-rules
+      ((rx
+        (group
+         "${"
+         (zero-or-more (not (any "}")))
+         "}"))
+       (0 (ignore
+           (let* ((beg (match-beginning 0))
+                  (context (save-excursion (save-match-data (syntax-ppss beg)))))
+             (put-text-property beg (1+ beg) 'typescript-interpolation
+                                (cons (nth 3 context) (match-data))))))))
+     (point) end)))
+
+(defun typescript-match-interpolation (limit)
+  (let ((pos (next-single-char-property-change (point) 'typescript-interpolation
+                                               nil limit)))
+    (when (and pos (> pos (point)))
+      (goto-char pos)
+      (let ((value (get-text-property pos 'typescript-interpolation)))
+        (if (eq (car value) ?\`)
+            (progn
+              (set-match-data (cdr value))
+              t)
+          (typescript-match-interpolation limit))))))
+
 ;;; Font Lock
 (defun typescript--make-framework-matcher (framework &rest regexps)
   "Helper function for building `typescript--font-lock-keywords'.
@@ -1496,6 +1526,9 @@ point of view of font-lock.  It applies highlighting directly with
        (end-of-line))
      (end-of-line)
      (1 font-lock-type-face))
+
+    ;; string interpolation
+    (typescript-match-interpolation 0 font-lock-variable-name-face t)
 
     ;; variable declarations
     ,(list
@@ -2049,6 +2082,8 @@ Key bindings:
 
   (set (make-local-variable 'syntax-begin-function)
        #'typescript--syntax-begin-function)
+
+  (set (make-local-variable 'syntax-propertize-function) #'typescript--syntax-propertize-function)
 
   ;; Important to fontify the whole buffer syntactically! If we don't,
   ;; then we might have regular expression literals that aren't marked
