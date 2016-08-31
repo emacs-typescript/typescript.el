@@ -1543,8 +1543,12 @@ point of view of font-lock.  It applies highlighting directly with
 
     ;; arrow function formal parameters
     ,(list
-      "(\\(.*\\))\\s-*=>"
+      "(\\([^(]*?\\))\\s-*=>"
       '(1 font-lock-variable-name-face))
+
+    ,(list
+      (concat "\\(" typescript--name-re "\\)\\_>(")
+      '(1 font-lock-function-name-face))
 
     ,(list
       (concat "\\(" typescript--name-re "\\)\\s-*=>")
