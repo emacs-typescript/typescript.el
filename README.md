@@ -6,6 +6,8 @@
 focused on providing basic font-lock/syntax-highlighting and
 indentation for Typescript syntax, without any external dependencies.
 
+Output from `tsc` is also handled seamlessly through `compilation-mode`.
+
 # Installation
 
 `typescript.el` can be installed from source directly using your
@@ -21,7 +23,6 @@ To customize `typescript.el` just type the following: `M-x customize-group<RET>t
 You can add any other customization you like to `typescript-mode-hook`
 in your `init.el` file. `typescript.el` also handles `prog-mode-hook`
 on versions of Emacs which supports it.
-
 
 # Other Typescript-packages of interest
 
