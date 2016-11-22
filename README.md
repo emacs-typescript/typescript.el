@@ -6,7 +6,8 @@
 focused on providing basic font-lock/syntax-highlighting and
 indentation for Typescript syntax, without any external dependencies.
 
-Output from `tsc` is also handled seamlessly through `compilation-mode`.
+Output from `tsc` and `tslint` is also handled seamlessly through
+`compilation-mode`.
 
 # Installation
 
