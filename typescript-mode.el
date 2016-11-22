@@ -2014,8 +2014,9 @@ the broken-down class name of the item to insert."
     (regexp
      `((typescript-tsc
         ,typescript-tsc-error-regexp
-        1 2 3 2))
-     `((typescript-tslint
+        1 2 3 2)
+
+       (typescript-tslint
         ,typescript-tslint-warning-regexp
         1 2 3 1)))
   (add-to-list 'compilation-error-regexp-alist-alist regexp)
