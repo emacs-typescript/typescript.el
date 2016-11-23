@@ -1769,7 +1769,7 @@ nil."
     (widen)
     (let* ((parse-status
             (save-excursion (syntax-ppss (point-at-bol))))
-           (offset (- (current-column) (current-indentation))))
+           (offset (- (point) (line-beginning-position) (current-indentation))))
       (indent-line-to (typescript--proper-indentation parse-status))
       (when (> offset 0) (forward-char offset)))))
 
