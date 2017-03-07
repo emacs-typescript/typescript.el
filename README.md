@@ -1,5 +1,7 @@
 # typescript.el
 
+[![Build Status](https://api.travis-ci.org/ananthakumaran/typescript.el.svg?branch=master)](https://travis-ci.org/ananthakumaran/typescript.el)
+
 `typescript.el` is major-mode for editing [Typescript](http://www.typescriptlang.org/)-files in [GNU Emacs](https://www.gnu.org/software/emacs/).
 
 `typescript.el` is a self-contained, lightweight and minimalist major-mode
