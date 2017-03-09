@@ -89,4 +89,77 @@ namespace ts.server {
     process.on("uncaughtException", function (err: Error) {
         ioSession.logError(err, "unknown");
     });
+
+    // Generators as methods.
+    class WithAGeneratorFirst {
+        *blah() {
+        }
+    }
+
+    class WithAGeneratorAfterAProperty {
+        public foo: string = "1";
+
+        *blah() {
+        }
+    }
+
+    class WithAGeneratorAfterAnotherMethod {
+        foo() {
+        }
+
+        *blah() {
+        }
+    }
+
+    class WithSpaceAfterAsterisk  {
+        bar() {
+        }
+
+        * oops() {
+        }
+    }
+
+
+    class WithSpaceAfterParens  {
+        bar() {
+        }
+
+        *oops () {
+        }
+    }
+
+    class WithArguments  {
+        bar() {
+        }
+
+        *oops(foo: number, bar: string) {
+        }
+    }
+
+    // Some continued expressions
+    {
+        const a = 1 *
+            2 /
+            3 +
+            4 -
+            5 %
+            6;
+
+        const b = 1 >
+            2;
+
+        const c = 1 <
+            2;
+
+        const d = 1 &
+            2 |
+            3;
+
+        const e = b ?
+            2 :
+            3;
+
+        const f = window
+            .document;
+    }
 }
