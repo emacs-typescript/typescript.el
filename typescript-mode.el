@@ -1643,7 +1643,7 @@ See `font-lock-keywords'.")
   "Regexp matching keywords optionally followed by an opening brace.")
 
 (defconst typescript--indent-operator-re
-  (concat "[-+*/%<>=&^|?:.]\\([^-+*/]\\|$\\)\\|"
+  (concat "[-+/%<>=&^|?:.]\\([^-+/]\\|$\\)\\|"
           (typescript--regexp-opt-symbol '("in" "instanceof")))
   "Regexp matching operators that affect indentation of continued expressions.")
 
