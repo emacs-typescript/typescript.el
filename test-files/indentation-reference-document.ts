@@ -161,5 +161,39 @@ namespace ts.server {
 
         const f = window
             .document;
+
+        const g = f
+            instanceof Object;
+
+        const h = "q"
+            in [1, 2];
+
+    }
+
+    {
+        // Object with fields that are keyword names.
+        const a = {
+            in: 1,
+            IN: 1,
+            instanceof: 1,
+            instanceOf: 1,
+        };
+
+        // Objects with methods that are keyword names.  At the top of
+        // the object declaration, and after a function declaration.
+        class One {
+            instanceOf(): void {
+            }
+
+            in(): void {}
+        }
+
+        // After a field declaration.
+        class Two {
+            foo: boolean = true;
+
+            instanceOf(): void {
+            }
+        }
     }
 }
