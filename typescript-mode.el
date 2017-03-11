@@ -1642,9 +1642,12 @@ See `font-lock-keywords'.")
      "each"))
   "Regexp matching keywords optionally followed by an opening brace.")
 
+(defconst typescript--indent-keyword-re
+  (typescript--regexp-opt-symbol '("in" "instanceof"))
+  "Regexp matching keywords that affect indentation of continued expressions.")
+
 (defconst typescript--indent-operator-re
-  (concat "[-+*/%<>=&^|?:.]\\([^-+*/]\\|$\\)\\|"
-          (typescript--regexp-opt-symbol '("in" "instanceof")))
+  (concat "[-+*/%<>=&^|?:.]\\([^-+*/]\\|$\\)\\|" typescript--indent-keyword-re)
   "Regexp matching operators that affect indentation of continued expressions.")
 
 
@@ -1656,6 +1659,13 @@ See `font-lock-keywords'.")
              (save-excursion
                (and (typescript--re-search-backward "[?:{]\\|\\_<case\\_>" nil t)
                     (looking-at "?"))))
+         ;; Do not identify methods, or fields, that are named "in" or
+         ;; "instanceof" as being operator keywords.
+         (not (and
+               (looking-at typescript--indent-keyword-re)
+               (save-excursion
+                 (typescript--backward-syntactic-ws)
+                 (memq (char-before) '(?, ?{ ?} ?\;)))))
          (not (and
                (looking-at "*")
                ;; Generator method (possibly using computed property).
