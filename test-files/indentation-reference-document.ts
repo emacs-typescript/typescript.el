@@ -196,4 +196,23 @@ namespace ts.server {
             }
         }
     }
+
+    // Spread syntax
+    {
+        const a = { a: 1, b: 2 };
+        const b = {
+            ...a,
+            a: 3,
+        };
+        const c = [1, 2];
+        const d = [
+            "a",
+            ...c
+        ];
+
+        function foo(a: string,
+                     b: number,
+                     ...rest: any[]) {
+        }
+    }
 }

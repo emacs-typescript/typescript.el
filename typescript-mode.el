@@ -1683,16 +1683,20 @@ See `font-lock-keywords'.")
   "Return non-nil if the current line continues an expression."
   (save-excursion
     (back-to-indentation)
-    (or (typescript--looking-at-operator-p)
-        (and (typescript--re-search-backward "\n" nil t)
-	     (progn
-	       (skip-chars-backward " \t")
-	       (or (bobp) (backward-char))
-	       (and (> (point) (point-min))
-                    (save-excursion (backward-char) (not (looking-at "[/*]/")))
-                    (typescript--looking-at-operator-p)
-		    (and (progn (backward-char)
-				(not (looking-at "++\\|--\\|/[/*]"))))))))))
+    (and
+     ;; Don't identify the spread syntax or rest operator as a
+     ;; "continuation".
+     (not (looking-at "\\.\\.\\."))
+     (or (typescript--looking-at-operator-p)
+         (and (typescript--re-search-backward "\n" nil t)
+              (progn
+                (skip-chars-backward " \t")
+                (or (bobp) (backward-char))
+                (and (> (point) (point-min))
+                     (save-excursion (backward-char) (not (looking-at "[/*]/")))
+                     (typescript--looking-at-operator-p)
+                     (and (progn (backward-char)
+                                 (not (looking-at "++\\|--\\|/[/*]")))))))))))
 
 
 (defun typescript--end-of-do-while-loop-p ()
