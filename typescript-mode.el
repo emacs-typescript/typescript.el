@@ -1659,6 +1659,14 @@ See `font-lock-keywords'.")
              (save-excursion
                (and (typescript--re-search-backward "[?:{]\\|\\_<case\\_>" nil t)
                     (looking-at "?"))))
+         ;; Do not identify forward slashes appearing in a "list" as
+         ;; an operator. The lists are: arrays, or lists of
+         ;; arguments. In this context, they must be part of regular
+         ;; expressions, and not math operators.
+         (not (and (looking-at "/")
+                   (save-excursion
+                     (typescript--backward-syntactic-ws)
+                     (memq (char-before) '(?, ?\[ ?\()))))
          ;; Do not identify methods, or fields, that are named "in" or
          ;; "instanceof" as being operator keywords.
          (not (and

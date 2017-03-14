@@ -215,4 +215,25 @@ namespace ts.server {
                      ...rest: any[]) {
         }
     }
+
+    {
+        // Regular expressions in lists.
+
+        // List objects...
+        const a = [
+            /abc/,
+            /def/
+        ];
+
+        const z =
+            /abcd/;
+
+        // Argument lists...
+        function foo(a: RegExp, b: RegExp): void {
+        }
+
+        foo(
+            /abc/,
+            /def/);
+    }
 }
