@@ -281,7 +281,7 @@ Match group 1 is the name of the macro.")
      "constructor" "continue" "declare" "default" "delete" "do" "else"
      "enum" "export" "extends" "extern" "false" "finally" "for"
      "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
-     "interface" "let" "module" "namespace" "new" "null" "number" "of"
+     "interface" "keyof" "let" "module" "namespace" "new" "null" "number" "of"
      "private" "protected" "public" "readonly" "return" "set" "static" "string"
      "super" "switch"  "this" "throw" "true"
      "try" "type" "typeof" "var" "void"
