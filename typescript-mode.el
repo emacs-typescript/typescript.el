@@ -1659,6 +1659,14 @@ See `font-lock-keywords'.")
              (save-excursion
                (and (typescript--re-search-backward "[?:{]\\|\\_<case\\_>" nil t)
                     (looking-at "?"))))
+         ;; Do not identify forward slashes appearing in a "list" as
+         ;; an operator. The lists are: arrays, or lists of
+         ;; arguments. In this context, they must be part of regular
+         ;; expressions, and not math operators.
+         (not (and (looking-at "/")
+                   (save-excursion
+                     (typescript--backward-syntactic-ws)
+                     (memq (char-before) '(?, ?\[ ?\()))))
          ;; Do not identify methods, or fields, that are named "in" or
          ;; "instanceof" as being operator keywords.
          (not (and
@@ -1683,16 +1691,20 @@ See `font-lock-keywords'.")
   "Return non-nil if the current line continues an expression."
   (save-excursion
     (back-to-indentation)
-    (or (typescript--looking-at-operator-p)
-        (and (typescript--re-search-backward "\n" nil t)
-	     (progn
-	       (skip-chars-backward " \t")
-	       (or (bobp) (backward-char))
-	       (and (> (point) (point-min))
-                    (save-excursion (backward-char) (not (looking-at "[/*]/")))
-                    (typescript--looking-at-operator-p)
-		    (and (progn (backward-char)
-				(not (looking-at "++\\|--\\|/[/*]"))))))))))
+    (and
+     ;; Don't identify the spread syntax or rest operator as a
+     ;; "continuation".
+     (not (looking-at "\\.\\.\\."))
+     (or (typescript--looking-at-operator-p)
+         (and (typescript--re-search-backward "\n" nil t)
+              (progn
+                (skip-chars-backward " \t")
+                (or (bobp) (backward-char))
+                (and (> (point) (point-min))
+                     (save-excursion (backward-char) (not (looking-at "[/*]/")))
+                     (typescript--looking-at-operator-p)
+                     (and (progn (backward-char)
+                                 (not (looking-at "++\\|--\\|/[/*]")))))))))))
 
 
 (defun typescript--end-of-do-while-loop-p ()
