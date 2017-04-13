@@ -29,6 +29,76 @@
 
     (kill-buffer buffer)))
 
+(defun get-all-matched-strings (to-match)
+  (let (result)
+    (dotimes (x (/ (length (match-data)) 2))
+      (setq result (nconc result (list (match-string x to-match)))))
+    result))
+
+(ert-deftest typescript-tslint-report-regexp-matches ()
+  "typescript-tslint-report-regexp matches a line that does not
+have a rule name or a severity."
+  (let* ((to-match
+          "src/modules/authenticator.ts[1, 83]: ' should be \"")
+         (match (string-match typescript-tslint-report-regexp
+                              to-match))
+         (matches (and match (get-all-matched-strings to-match))))
+    (should match)
+    (should (not (nth 1 matches)))
+    (should (not (nth 2 matches)))
+    (should (string-equal (nth 3 matches)
+                          "src/modules/authenticator.ts"))
+    (should (string-equal (nth 4 matches) "1"))
+    (should (string-equal (nth 5 matches) "83"))))
+
+(ert-deftest typescript-tslint-report-regexp-matches-with-name ()
+  "typescript-tslint-report-regexp matches a line that has
+a rule name, no severity."
+  (let* ((to-match
+          "(quotemark) src/modules/authenticator.ts[1, 83]: ' should be \"")
+         (match (string-match typescript-tslint-report-regexp
+                              to-match))
+         (matches (and match (get-all-matched-strings to-match))))
+    (should match)
+    (should (not (nth 1 matches)))
+    (should (string-equal (nth 2 matches) "(quotemark) "))
+    (should (string-equal (nth 3 matches)
+                          "src/modules/authenticator.ts"))
+    (should (string-equal (nth 4 matches) "1"))
+    (should (string-equal (nth 5 matches) "83"))))
+
+(ert-deftest typescript-tslint-report-regexp-matches-with-error ()
+  "typescript-tslint-report-regexp matches a line that has
+a severity set to ERROR, no rule name."
+  (let* ((to-match
+          "ERROR: src/modules/authenticator.ts[1, 83]: ' should be \"")
+         (match (string-match typescript-tslint-report-regexp
+                              to-match))
+         (matches (and match (get-all-matched-strings to-match))))
+    (should match)
+    (should (not (nth 1 matches)))
+    (should (not (nth 2 matches)))
+    (should (string-equal (nth 3 matches)
+                          "src/modules/authenticator.ts"))
+    (should (string-equal (nth 4 matches) "1"))
+    (should (string-equal (nth 5 matches) "83"))))
+
+(ert-deftest typescript-tslint-report-regexp-matches-with-warning ()
+  "typescript-tslint-report-regexp matches a line that has
+a severity set to WARNING, no rule name."
+  (let* ((to-match
+          "WARNING: src/modules/authenticator.ts[1, 83]: ' should be \"")
+         (match (string-match typescript-tslint-report-regexp
+                              to-match))
+         (matches (and match (get-all-matched-strings to-match))))
+    (should match)
+    (should (string-equal (nth 1 matches) "WARNING"))
+    (should (not (nth 2 matches)))
+    (should (string-equal (nth 3 matches)
+                          "src/modules/authenticator.ts"))
+    (should (string-equal (nth 4 matches) "1"))
+    (should (string-equal (nth 5 matches) "83"))))
+
 (provide 'typescript-mode-tests)
 
 ;;; typescript-mode-tests.el ends here
