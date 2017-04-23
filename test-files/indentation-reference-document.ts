@@ -50,6 +50,8 @@ namespace ts.server {
         pid: number;
     }
 
+    export type SomeType = string | number;
+
     class Logger implements ts.server.Logger {
         private firstInGroup = true;
 
@@ -236,4 +238,209 @@ namespace ts.server {
             /abc/,
             /def/);
     }
+}
+
+// Tests for return value annotations.
+
+// Unannotated.
+function moo(x: any,
+             f: string) {
+    return null;
+}
+
+// Parens around return type.
+function foo(x: any,
+             f: string): ((a: number) => void) {
+    return null;
+}
+
+class Moo {}
+
+// Type guard.
+function foo2(x: any,
+              f: string): x is Moo {
+    return x.something === 1;
+}
+
+// Usage of generic in return type.
+function foo3(a: number,
+              b: number): Array<Array<(a: number) => void>> {
+    return [];
+}
+
+// Curly brackets in return type.
+function bar(a: number,
+             b: number): { z(): string } {
+    return {
+        z() { return "a"; }
+    };
+}
+
+// The sequence ): in the return type.
+function bif(a: number,
+             b: number): "abc):d" {
+    return "abc):d";
+}
+
+// Comment where the return type would appear.
+function gogo(a: number,
+              b: number) /* foo */ {
+}
+
+// Function call in the list of arguments.
+function foo5(x: any,
+              f: string = bif(1, 2)): ((a: number) => void) {
+    return null;
+}
+
+// Dotted name in return type.
+function foo6(x: any,
+              f: number): ts.server.SomeType {
+    return "string";
+}
+
+// First parameter has function signature.
+function foo7(x: (a: string, b: string) => Array<number>,
+              b: number): void {
+}
+
+// Second parameter has function signature.
+function foo7b(a: string,
+               x: (a: number, b: number) => Array<number>): void {
+}
+
+function foo8(): void {
+    // Arrow function in first parameter.
+    foo7((a: string): Array<number> => {
+             return [1];
+         },
+         1);
+
+    // Arrow function in first parameter, line break in parameters.
+    foo7((a: string,
+          b: string): Array<number> => {
+             return [1];
+         },
+         1);
+
+    // Arrow function in second parameter.
+    foo7b("1",
+          (a: number, b: number): Array<number> => {
+              return [1];
+          });
+
+    // Arrow function in second parameter, line break in parameters.
+    foo7b("1",
+          (a: number,
+           b: number): Array<number> => {
+              return [1];
+          });
+}
+
+// Arrow function assignment, line break in parameters.
+const foo9 = (a: string,
+              b: string): Array<number> => {
+    return [1];
+}
+
+// Arrow function assignment.
+const foo10 = (a: string, b: string): Array<number> => {
+    return [1];
+}
+
+// Arrow function assignment, parenthesized.
+const foo11 = ((a: string, b: string): Array<number> => {
+                   return [1];
+               });
+
+function foo12(): void {
+    // Function in first parameter.
+    foo7(function (a: string): Array<number> {
+             return [1];
+         },
+         1);
+
+    // Function in first parameter, line break in parameters.
+    foo7(function (a: string,
+                   b: string): Array<number> {
+             return [1];
+         },
+         1);
+
+    // Arrow function in second parameter.
+    foo7b("1",
+          function (a: number, b: number): Array<number> {
+              return [1];
+          });
+
+    // Arrow function in second parameter, line break in parameters.
+    foo7b("1",
+          function (a: number,
+                    b: number): Array<number> {
+              return [1];
+          });
+
+    // Same cases as above but named.
+
+    // Function in first parameter.
+    foo7(function _mip(a: string): Array<number> {
+             return [1];
+         },
+         1);
+
+    // Function in first parameter, line break in parameters.
+    foo7(function _mip(a: string,
+                       b: string): Array<number> {
+             return [1];
+         },
+         1);
+
+    // Arrow function in second parameter.
+    foo7b("1",
+          function _mip(a: number, b: number): Array<number> {
+              return [1];
+          });
+
+    // Arrow function in second parameter, line break in parameters.
+    foo7b("1",
+          function _mip(a: number,
+                        b: number): Array<number> {
+              return [1];
+          });
+
+    // Same cases as above but generators.
+
+    // Function in first parameter.
+    foo7(function *(a: string): Array<number> {
+             return [1];
+         },
+         1);
+
+    // Function in first parameter, line break in parameters.
+    foo7(function *(a: string,
+                    b: string): Array<number> {
+             return [1];
+         },
+         1);
+
+    // Arrow function in second parameter.
+    foo7b("1",
+          function *(a: number, b: number): Array<number> {
+              return [1];
+          });
+
+    // Arrow function in second parameter, line break in parameters.
+    foo7b("1",
+          function *(a: number,
+                     b: number): Array<number> {
+              return [1];
+          });
+
+    // Check that JavaScript objects are still handled right. Whether
+    // in the 1st or subsequent position of a call.
+    function smurf(a: {}, b: {}) {}
+    smurf({
+          },
+          {
+          });
 }
