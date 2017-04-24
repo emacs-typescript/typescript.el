@@ -2071,7 +2071,7 @@ the broken-down class name of the item to insert."
 
        (typescript-tslint
         ,typescript-tslint-report-regexp
-        3 4 5 3 (1))))
+        3 4 5 (1))))
   (add-to-list 'compilation-error-regexp-alist-alist regexp)
   (add-to-list 'compilation-error-regexp-alist (car regexp)))
 
