@@ -99,6 +99,13 @@ a severity set to WARNING, no rule name."
     (should (string-equal (nth 4 matches) "1"))
     (should (string-equal (nth 5 matches) "83"))))
 
+(ert-deftest correctly-accounts-wide-chars-as-1-char ()
+  "Otsuka Ai and other multi-char users should be a happy to write typescript."
+
+  (with-temp-buffer
+    (insert "大塚愛")
+    (should (equal 3 (typescript-current-column)))))
+
 (provide 'typescript-mode-tests)
 
 ;;; typescript-mode-tests.el ends here
