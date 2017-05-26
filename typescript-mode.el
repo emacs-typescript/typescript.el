@@ -1799,7 +1799,7 @@ nil."
   "Unicode aware version of `CURRENT-COLUMN' which correctly accounts for wide characters."
 
   (save-excursion
-    (let* ((end (point)))
+    (let ((end (point)))
       (move-beginning-of-line nil)
       (- end (point)))))
 

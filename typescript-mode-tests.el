@@ -106,6 +106,15 @@ a severity set to WARNING, no rule name."
     (insert "大塚愛")
     (should (equal 3 (typescript-current-column)))))
 
+(ert-deftest correctly-accounts-wide-chars-as-1-char-without-sideeffects ()
+  "Otsuka Ai and other multi-char users should be a happy to write typescript."
+
+  (with-temp-buffer
+    (insert "大塚愛")
+    (let ((pos1 (typescript-current-column))
+          (pos2 (typescript-current-column)))
+      (should (equal pos1 pos2)))))
+
 (provide 'typescript-mode-tests)
 
 ;;; typescript-mode-tests.el ends here
