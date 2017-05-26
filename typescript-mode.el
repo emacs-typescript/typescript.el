@@ -1798,9 +1798,10 @@ nil."
 (defun typescript-current-column ()
   "Unicode aware version of `CURRENT-COLUMN' which correctly accounts for wide characters."
 
-  (let* ((end (point)))
-    (move-beginning-of-line nil)
-    (- end (point))))
+  (save-excursion
+    (let* ((end (point)))
+      (move-beginning-of-line nil)
+      (- end (point)))))
 
 (defun typescript-indent-line ()
   "Indent the current line as typescript."
