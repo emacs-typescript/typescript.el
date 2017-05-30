@@ -1795,14 +1795,6 @@ nil."
            (+ typescript-indent-level typescript-expr-indent-offset))
           (t 0))))
 
-(defun typescript--current-column ()
-  "Unicode aware version of `CURRENT-COLUMN' which correctly accounts for wide characters."
-
-  (save-excursion
-    (let ((end (point)))
-      (move-beginning-of-line nil)
-      (- end (point)))))
-
 (defun typescript-indent-line ()
   "Indent the current line as typescript."
   (interactive)
@@ -1810,9 +1802,9 @@ nil."
     (widen)
     (let* ((parse-status
             (save-excursion (syntax-ppss (point-at-bol))))
-           (offset (- (typescript--current-column) (current-indentation))))
+           (offset (- (current-column) (current-indentation))))
       (indent-line-to (typescript--proper-indentation parse-status))
-      (when (> offset 0) (forward-char offset)))))
+      (when (> offset 0) (move-to-column (+ offset (current-indentation)))))))
 
 ;;; Filling
 

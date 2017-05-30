@@ -99,21 +99,36 @@ a severity set to WARNING, no rule name."
     (should (string-equal (nth 4 matches) "1"))
     (should (string-equal (nth 5 matches) "83"))))
 
-(ert-deftest correctly-accounts-wide-chars-as-1-char ()
+(ert-deftest correctly-indents-lines-with-wide-chars ()
   "Otsuka Ai and other multi-char users should be a happy to write typescript."
 
   (with-temp-buffer
-    (insert "大塚愛")
-    (should (equal 3 (typescript--current-column)))))
+    (ignore-errors (typescript-mode))
+    (insert "let x = '大塚愛'")
+    (let ((pos1 (current-column)))
+      (typescript-indent-line)
+      (let ((pos2 (current-column)))
+        (should (= pos1 pos2))))))
 
-(ert-deftest correctly-accounts-wide-chars-as-1-char-without-sideeffects ()
-  "Otsuka Ai and other multi-char users should be a happy to write typescript."
-
+(ert-deftest correctly-indents-lines-with-tabs ()
   (with-temp-buffer
-    (insert "大塚愛")
-    (let ((pos1 (typescript--current-column))
-          (pos2 (typescript--current-column)))
-      (should (equal pos1 pos2)))))
+    (ignore-errors (typescript-mode))
+
+    (insert "class Example {")
+    (newline-and-indent)
+    (insert "constructor() {")
+    (newline-and-indent)
+    (insert "const a = new Promise")
+
+    (should (= 29 (current-column)))
+    (typescript-indent-line)
+    (should (= 29 (current-column)))
+
+    ;; verify tab was used
+    (move-beginning-of-line nil)
+    (should (= 0 (current-column)))
+    (forward-char 1)
+    (should (= 8 (current-column)))))
 
 (provide 'typescript-mode-tests)
 
