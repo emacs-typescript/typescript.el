@@ -312,15 +312,15 @@ function foo7b(a: string,
 function foo8(): void {
     // Arrow function in first parameter.
     foo7((a: string): Array<number> => {
-             return [1];
-         },
+        return [1];
+    },
          1);
 
     // Arrow function in first parameter, line break in parameters.
     foo7((a: string,
           b: string): Array<number> => {
-             return [1];
-         },
+        return [1];
+    },
          1);
 
     // Arrow function in second parameter.
@@ -350,21 +350,21 @@ const foo10 = (a: string, b: string): Array<number> => {
 
 // Arrow function assignment, parenthesized.
 const foo11 = ((a: string, b: string): Array<number> => {
-                   return [1];
-               });
+    return [1];
+});
 
 function foo12(): void {
     // Function in first parameter.
     foo7(function (a: string): Array<number> {
-             return [1];
-         },
+        return [1];
+    },
          1);
 
     // Function in first parameter, line break in parameters.
     foo7(function (a: string,
                    b: string): Array<number> {
-             return [1];
-         },
+        return [1];
+    },
          1);
 
     // Arrow function in second parameter.
@@ -384,15 +384,15 @@ function foo12(): void {
 
     // Function in first parameter.
     foo7(function _mip(a: string): Array<number> {
-             return [1];
-         },
+        return [1];
+    },
          1);
 
     // Function in first parameter, line break in parameters.
     foo7(function _mip(a: string,
                        b: string): Array<number> {
-             return [1];
-         },
+        return [1];
+    },
          1);
 
     // Arrow function in second parameter.
@@ -412,15 +412,15 @@ function foo12(): void {
 
     // Function in first parameter.
     foo7(function *(a: string): Array<number> {
-             return [1];
-         },
+        return [1];
+    },
          1);
 
     // Function in first parameter, line break in parameters.
     foo7(function *(a: string,
                     b: string): Array<number> {
-             return [1];
-         },
+        return [1];
+    },
          1);
 
     // Arrow function in second parameter.
@@ -440,7 +440,15 @@ function foo12(): void {
     // in the 1st or subsequent position of a call.
     function smurf(a: {}, b: {}) {}
     smurf({
-          },
+        a: {},
+    },
           {
-          });
+        a: {},
+    });
+
+    smurf({
+        a: {},
+    }, {
+        a: {},
+    });
 }

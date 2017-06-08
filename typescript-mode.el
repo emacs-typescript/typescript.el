@@ -1863,36 +1863,6 @@ moved on success."
     (when location
       (goto-char location))))
 
-(defun typescript--backward-to-function-start ()
-  "Search backward for the start of a function and move to it.
-
-This function moves the point to the start of the function and
-returns the point.
-
-The point must already be at the start of the parameter list.
-See `typescript--backward-to-parameter-list' for a function that
-does this.  If the point is not at the start of the parameter
-list, this function may return an incorrect result."
-  (goto-char
-   (or (condition-case nil
-           (save-excursion
-             (skip-syntax-backward " ")
-             (backward-sexp)
-             ;; First, check for an anonymous function.
-             (or (when (looking-at "function")
-                   (point))
-                 ;; Otherwise check if we have a named function.
-                 (progn
-                   (skip-syntax-backward " ")
-                   (backward-sexp)
-                   (when (looking-at "function")
-                     (point)))))
-         ;; backward-sexp may cause a scan-error if the sexp is
-         ;; incomplete.
-         (scan-error nil))
-       ;; If we get here, what we are looking at is an arrow function.
-       (point))))
-
 (defun typescript--proper-indentation (parse-status)
   "Return the proper indentation for the current line."
   (save-excursion
@@ -1919,9 +1889,7 @@ list, this function may return an incorrect result."
                    ;; This allows handling functions in parameter
                    ;; lists. Otherwise, we want to go back to the
                    ;; start of function declaration.
-                   (when (not (and (typescript--backward-to-function-start)
-                                   (eq (char-before) ?\()))
-                     (back-to-indentation))
+                   (back-to-indentation)
                    (cond (same-indent-p
                           (current-column))
                          (continued-expr-p
