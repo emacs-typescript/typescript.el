@@ -266,6 +266,12 @@ Match group 1 is the name of the function.")
   "Regexp matching a line in the typescript form \"var MUMBLE = function\".
 Match group 1 is MUMBLE.")
 
+(defconst typescript--function-heading-4-re
+  (concat
+   "^\\s-*\\(" typescript--name-re "\\)\\s-*:.*=>")
+  "Regexp matching the start of a function entry in an associative array.
+Match group 1 is the name of the function.")
+
 (defconst typescript--macro-decl-re
   (concat "^\\s-*#\\s-*define\\s-+\\(" typescript--cpp-name-re "\\)\\s-*(")
   "Regexp matching a CPP macro definition, up to the opening parenthesis.
@@ -304,7 +310,8 @@ Match group 1 is the name of the macro.")
   (list
    "\\_<import\\_>"
    (list typescript--function-heading-1-re 1 font-lock-function-name-face)
-   (list typescript--function-heading-2-re 1 font-lock-function-name-face))
+   (list typescript--function-heading-2-re 1 font-lock-function-name-face)
+   (list typescript--function-heading-4-re 1 font-lock-function-name-face))
   "Level one font lock keywords for `typescript-mode'.")
 
 (defconst typescript--font-lock-keywords-2
@@ -1533,7 +1540,20 @@ point of view of font-lock.  It applies highlighting directly with
                  (forward-symbol -1)
                (end-of-line))
             '(end-of-line)
-            '(0 font-lock-variable-name-face))))
+            '(0 font-lock-variable-name-face)))
+
+    ;; arrow function formal parameters
+    ,(list
+      "(\\([^(]*?\\))\\s-*=>"
+      '(1 font-lock-variable-name-face))
+
+    ,(list
+      (concat "\\(" typescript--name-re "\\)\\_>(")
+      '(1 font-lock-function-name-face))
+
+    ,(list
+      (concat "\\(" typescript--name-re "\\)\\s-*=>")
+      '(1 font-lock-variable-name-face)))
   "Level three font lock for `typescript-mode'.")
 
 (defun typescript--inside-pitem-p (pitem)
