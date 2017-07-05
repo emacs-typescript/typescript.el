@@ -432,6 +432,13 @@ The value must be no less than minus `typescript-indent-level'."
   :type 'integer
   :group 'typescript)
 
+(defcustom typescript-fn-parameter-indent-offset 0
+  "Number of additional spaces used for indentation of continued lines in
+function parameter lists (including both calls and declarations).
+The value must be no less than minus `typescript-indent-level'."
+  :type 'integer
+  :group 'typescript)
+
 (defcustom typescript-auto-indent-flag t
   "Whether to automatically indent when typing punctuation characters.
 If non-nil, the characters {}();,: also indent the current line
@@ -1774,9 +1781,13 @@ nil."
                                  "[]})]\\|\\_<case\\_>\\|\\_<default\\_>"))
                  (continued-expr-p (typescript--continued-expression-p)))
              (goto-char (nth 1 parse-status))
-             (if (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)")
-                 (progn
-                   (skip-syntax-backward " ")
+             (let* ((looking-at-list-opener-p
+                     (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)"))
+                    (looking-at-fn-param-list-opener-p
+                     (and looking-at-list-opener-p (looking-at "("))))
+               (if looking-at-list-opener-p
+                   (progn
+                     (skip-syntax-backward " ")
 		   (when (eq (char-before) ?\)) (backward-list))
                    (back-to-indentation)
                    (cond (same-indent-p
@@ -1784,12 +1795,16 @@ nil."
                          (continued-expr-p
                           (+ (current-column) (* 2 typescript-indent-level)
                              typescript-expr-indent-offset))
+                         (looking-at-fn-param-list-opener-p
+                          (+ (current-column)
+                             typescript-indent-level
+                             typescript-fn-parameter-indent-offset))
                          (t
                           (+ (current-column) typescript-indent-level))))
                (unless same-indent-p
                  (forward-char)
                  (skip-chars-forward " \t"))
-               (current-column))))
+               (current-column)))))
 
           ((typescript--continued-expression-p)
            (+ typescript-indent-level typescript-expr-indent-offset))
