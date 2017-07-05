@@ -17,8 +17,8 @@
   (indent-region (point-min) (point-max) nil)
   (untabify (point-min) (point-max)))
 
-(ert-deftest indentation-reference-document-is-reflowed-correctly ()
-  (let* ((buffer (find-file "test-files/indentation-reference-document.ts")))
+(defun typescript-test-reference-document-is-reflowed-correctly (filename)
+  (let* ((buffer (find-file filename)))
     ;; double ensure mode is active
     (typescript-mode)
 
@@ -28,6 +28,15 @@
                             (typescript-test-get-doc))))
 
     (kill-buffer buffer)))
+
+(ert-deftest indentation-reference-document-is-reflowed-correctly ()
+  (typescript-test-reference-document-is-reflowed-correctly "test-files/indentation-reference-document.ts"))
+
+(ert-deftest indentation-custom-reference-document-is-reflowed-correctly ()
+  (let ((typescript-indent-level 2)
+        (typescript-expr-indent-offset 2)
+        (typescript-fn-parameter-indent-offset 2))
+    (typescript-test-reference-document-is-reflowed-correctly "test-files/custom-indentation-reference-document.ts")))
 
 (defun get-all-matched-strings (to-match)
   (let (result)
