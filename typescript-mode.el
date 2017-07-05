@@ -1783,9 +1783,9 @@ nil."
              (goto-char (nth 1 parse-status))
              (let* ((looking-at-list-opener-p (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)"))
                    (looking-at-open-paren-p (and looking-at-list-opener-p (looking-at "("))))
-             (if looking-at-list-opener-p
-                 (progn
-                   (skip-syntax-backward " ")
+               (if looking-at-list-opener-p
+                   (progn
+                     (skip-syntax-backward " ")
 		   (when (eq (char-before) ?\)) (backward-list))
                    (back-to-indentation)
                    (cond (same-indent-p
