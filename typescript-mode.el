@@ -1781,8 +1781,10 @@ nil."
                                  "[]})]\\|\\_<case\\_>\\|\\_<default\\_>"))
                  (continued-expr-p (typescript--continued-expression-p)))
              (goto-char (nth 1 parse-status))
-             (let* ((looking-at-list-opener-p (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)"))
-                   (looking-at-open-paren-p (and looking-at-list-opener-p (looking-at "("))))
+             (let* ((looking-at-list-opener-p
+                     (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)"))
+                    (looking-at-fn-param-list-opener-p
+                     (and looking-at-list-opener-p (looking-at "("))))
                (if looking-at-list-opener-p
                    (progn
                      (skip-syntax-backward " ")
@@ -1793,7 +1795,10 @@ nil."
                          (continued-expr-p
                           (+ (current-column) (* 2 typescript-indent-level)
                              typescript-expr-indent-offset))
-                         (looking-at-open-paren-p (+ (current-column) typescript-indent-level typescript-fn-parameter-indent-offset))
+                         (looking-at-fn-param-list-opener-p
+                          (+ (current-column)
+                             typescript-indent-level
+                             typescript-fn-parameter-indent-offset))
                          (t
                           (+ (current-column) typescript-indent-level))))
                (unless same-indent-p
