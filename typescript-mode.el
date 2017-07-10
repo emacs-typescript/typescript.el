@@ -1759,6 +1759,110 @@ nil."
          (list (cons 'c typescript-comment-lineup-func))))
     (c-get-syntactic-indentation (list (cons symbol anchor)))))
 
+(defun typescript--backward-over-generic-parameter-list ()
+  "Search backward for the start of a generic's parameter list and move to it.
+
+This is a utility function for
+`typescript--backward-to-parameter-list'.
+
+This function must be called with the point placed on the final >
+of the generic's parameter list.  It will scan backwards to find
+the start.  If successful, it will move the point to the start of
+the list.  If not, it does not move the point.
+
+Returns nil on failure, or the position to which the point was
+moved on success."
+  (when (eq (char-after) ?>)
+    (let ((depth 1))
+      (loop named search-loop
+            while (> depth 0)
+            do (progn
+                 (unless (re-search-backward "[<>]" nil t)
+                   (cl-return-from search-loop nil))
+                 (cond
+                  ((looking-at ">")
+                   (unless (eq (char-before) ?=)
+                     (setq depth (1+ depth))))
+                  ((looking-at "<") (setq depth (1- depth)))))
+            finally return (point)))))
+
+(defun typescript--backward-to-parameter-list ()
+  "Search backward for the end of a parameter list and move to it.
+
+This is a utility function for `typescript--proper-indentation'.
+
+This function must be called with the point placed before an
+opening curly brace.  It will try to skip over the type
+annotation that would mark the return value of a function and
+move to the end of the parameter list.  If it is unsuccessful, it
+does not move the point. \"Unsuccessful\" here also means that
+the position at which we started did not in fact mark the
+beginning of a function. The curly brace belonged to some other
+syntactic construct than a function.
+
+Returns nil on failure, or the position to which the point was
+moved on success."
+  (let ((location
+         (or
+          ;; This handles the case of a function with return type annotation.
+          (save-excursion
+            (loop named search-loop
+                  do (progn
+                       (if (eq (char-before) ?>)
+                           (if (looking-back "=>" (- (point) 2))
+                               ;; Move back over the arrow of an arrow function.
+                               (backward-char 2)
+                             ;; Otherwise, we are looking at the end of the parameters
+                             ;; list of a generic. We need to move back over the list.
+                             (backward-char)
+                             (typescript--backward-over-generic-parameter-list))
+                         ;; General case: we just move back over the current sexp.
+                         (condition-case nil
+                             (backward-sexp)
+                           (scan-error nil)))
+                       (typescript--backward-syntactic-ws)
+                       (let ((before (char-before)))
+                         ;; Check whether we are at "):".
+                         (when (and (eq before ?\:)
+                                    (progn
+                                      (backward-char)
+                                      (skip-syntax-backward " ")
+                                      (eq (char-before) ?\))))
+                           ;; Success! This the end of the parameter list.
+                           (cl-return-from search-loop (point)))
+                         ;; All the following cases are constructs that are allowed to
+                         ;; appear between the opening brace of a function and the
+                         ;; end of a parameter list.
+                         (unless
+                             (or
+                              ;; End of a generic.
+                              (eq before ?>)
+                              ;; Union of types
+                              (eq before ?|)
+                              ;; Dotted names
+                              (eq before ?.)
+                              ;; Typeguard (eg. foo is SomeClass)
+                              (looking-back "is" (- (point) 2))
+                              ;; This is also dealing with dotted names. This may come
+                              ;; into play if a jump back moves over an entire dotted
+                              ;; name at once.
+                              ;;
+                              ;; The earlier test for dotted names comes into play if the
+                              ;; logic moves over one part of a dotted name at a time (which
+                              ;; is what `backward-sexp` normally does).
+                              (looking-back typescript--dotted-name-re nil)
+                             )
+                           ;; We did not encounter a valid construct, so
+                           ;; the search is unsuccessful.
+                           (cl-return-from search-loop nil))))))
+          ;; This handles the case of a function without return type annotation.
+          (progn
+            (typescript--backward-syntactic-ws)
+            (when (eq (char-before) ?\))
+              (point))))))
+    (when location
+      (goto-char location))))
+
 (defun typescript--proper-indentation (parse-status)
   "Return the proper indentation for the current line."
   (save-excursion
@@ -1777,7 +1881,14 @@ nil."
              (if (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)")
                  (progn
                    (skip-syntax-backward " ")
-		   (when (eq (char-before) ?\)) (backward-list))
+                   (when (or (typescript--backward-to-parameter-list)
+                             (eq (char-before) ?\)))
+                     (backward-list))
+                   ;; If the parameter list is preceded by (, take the
+                   ;; start of the parameter list as our reference.
+                   ;; This allows handling functions in parameter
+                   ;; lists. Otherwise, we want to go back to the
+                   ;; start of function declaration.
                    (back-to-indentation)
                    (cond (same-indent-p
                           (current-column))
