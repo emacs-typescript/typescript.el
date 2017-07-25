@@ -282,6 +282,13 @@ function bif(a: number,
     return "abc):d";
 }
 
+// Generic and union in return type. This case was constructed from
+// a specific bug in the indentation code.
+function bif2(a: number,
+              b: number): Array<number> | number {
+    return 1;
+}
+
 // Comment where the return type would appear.
 function gogo(a: number,
               b: number) /* foo */ {
