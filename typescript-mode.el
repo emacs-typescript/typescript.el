@@ -1809,14 +1809,15 @@ moved on success."
             (loop named search-loop
                   do (progn
                        (cond
+                        ;; Looking at the arrow of an arrow function:
+                        ;; move back over the arrow.
+                        ((looking-back "=>" (- (point) 2))
+                         (backward-char 2))
+                        ;; Looking at the end of the parameters list
+                        ;; of a generic: move back over the list.
                         ((eq (char-before) ?>)
-                         (if (looking-back "=>" (- (point) 2))
-                             ;; Move back over the arrow of an arrow function.
-                             (backward-char 2)
-                           ;; Otherwise, we are looking at the end of the parameters
-                           ;; list of a generic. We need to move back over the list.
-                           (backward-char)
-                           (typescript--backward-over-generic-parameter-list)))
+                         (backward-char)
+                         (typescript--backward-over-generic-parameter-list))
                         ;; Looking at a union: skip over the character.
                         ((eq (char-before) ?|)
                          (backward-char))
