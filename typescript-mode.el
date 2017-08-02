@@ -1890,11 +1890,6 @@ moved on success."
                    (when (or (typescript--backward-to-parameter-list)
                              (eq (char-before) ?\)))
                      (backward-list))
-                   ;; If the parameter list is preceded by (, take the
-                   ;; start of the parameter list as our reference.
-                   ;; This allows handling functions in parameter
-                   ;; lists. Otherwise, we want to go back to the
-                   ;; start of function declaration.
                    (back-to-indentation)
                    (cond (same-indent-p
                           (current-column))
