@@ -52,6 +52,34 @@
 (eval-when-compile
   (require 'cl))
 
+(defcustom typescript-indent-level 4
+  "Number of spaces for each indentation step in `typescript-mode'."
+  :type 'integer
+  :group 'typescript)
+
+(defcustom typescript-expr-indent-offset 0
+  "Number of additional spaces used for indentation of continued expressions.
+The value must be no less than minus `typescript-indent-level'."
+  :type 'integer
+  :group 'typescript)
+
+(defcustom typescript-auto-indent-flag t
+  "Whether to automatically indent when typing punctuation characters.
+If non-nil, the characters {}();,: also indent the current line
+in typescript mode."
+  :type 'boolean
+  :group 'typescript)
+
+
+(defcustom typescript-comment-lineup-func #'c-lineup-C-comments
+  "Lineup function for `cc-mode-style', for C comments in `typescript-mode'."
+  :type 'function
+  :group 'typescript)
+
+
+(defun typescript--regexp-opt-symbol (list)
+  "Like `regexp-opt', but surround the result with `\\\\_<' and `\\\\_>'."
+  (concat "\\_<" (regexp-opt list t) "\\_>"))
 
 (defconst typescript--keyword-re
   (js--regexp-opt-symbol
@@ -204,6 +232,273 @@
                                    typescript--font-lock-keywords-3)
   "Font lock keywords for `js-mode'.  See `font-lock-keywords'.")
 
+;;; Indentation
+
+(defun typescript--beginning-of-macro (&optional lim)
+  (let ((here (point)))
+    (save-restriction
+      (if lim (narrow-to-region lim (point-max)))
+      (beginning-of-line)
+      (while (eq (char-before (1- (point))) ?\\)
+        (forward-line -1))
+      (back-to-indentation)
+      (if (and (<= (point) here)
+               (looking-at js--opt-cpp-start))
+          t
+        (goto-char here)
+        nil))))
+
+
+(defun typescript--backward-syntactic-ws (&optional lim)
+  "Simple implementation of `c-backward-syntactic-ws' for `typescript-mode'."
+  (save-restriction
+    (when lim (narrow-to-region lim (point-max)))
+
+    (let ((in-macro (save-excursion (typescript--beginning-of-macro)))
+          (pos (point)))
+
+      (while (progn (unless in-macro (typescript--beginning-of-macro))
+                    (forward-comment most-negative-fixnum)
+                    (/= (point)
+                        (prog1
+                            pos
+                          (setq pos (point)))))))))
+
+
+(defun typescript--re-search-forward-inner (regexp &optional bound count)
+  "Helper function for `typescript--re-search-forward'."
+  (let ((parse)
+        str-terminator
+        (orig-macro-end (save-excursion
+                          (when (typescript--beginning-of-macro)
+                            (c-end-of-macro)
+                            (point)))))
+    (while (> count 0)
+      (re-search-forward regexp bound)
+      (setq parse (syntax-ppss))
+      (cond ((setq str-terminator (nth 3 parse))
+             (when (eq str-terminator t)
+               (setq str-terminator ?/))
+             (re-search-forward
+              (concat "\\([^\\]\\|^\\)" (string str-terminator))
+              (save-excursion (end-of-line) (point)) t))
+            ((nth 7 parse)
+             (forward-line))
+            ((or (nth 4 parse)
+                 (and (eq (char-before) ?\/) (eq (char-after) ?\*)))
+             (re-search-forward "\\*/"))
+            ((and (not (and orig-macro-end
+                            (<= (point) orig-macro-end)))
+                  (typescript--beginning-of-macro))
+             (c-end-of-macro))
+            (t
+             (setq count (1- count))))))
+  (point))
+
+
+(defun typescript--re-search-forward (regexp &optional bound noerror count)
+  "Search forward, ignoring strings, cpp macros, and comments.
+This function invokes `re-search-forward', but treats the buffer
+as if strings, cpp macros, and comments have been removed.
+
+If invoked while inside a macro, it treats the contents of the
+macro as normal text."
+  (let ((saved-point (point))
+        (search-expr
+         (cond ((null count)
+                '(typescript--re-search-forward-inner regexp bound 1))
+               ((< count 0)
+                '(typescript--re-search-backward-inner regexp bound (- count)))
+               ((> count 0)
+                '(typescript--re-search-forward-inner regexp bound count)))))
+    (condition-case err
+        (eval search-expr)
+      (search-failed
+       (goto-char saved-point)
+       (unless noerror
+         (error (error-message-string err)))))))
+
+
+(defun typescript--re-search-backward-inner (regexp &optional bound count)
+  "Auxiliary function for `typescript--re-search-backward'."
+  (let ((parse)
+        str-terminator
+        (orig-macro-start
+         (save-excursion
+           (and (typescript--beginning-of-macro)
+                (point)))))
+    (while (> count 0)
+      (re-search-backward regexp bound)
+      (when (and (> (point) (point-min))
+                 (save-excursion (backward-char) (looking-at "/[/*]")))
+        (forward-char))
+      (setq parse (syntax-ppss))
+      (cond ((setq str-terminator (nth 3 parse))
+             (when (eq str-terminator t)
+               (setq str-terminator ?/))
+             (re-search-backward
+              (concat "\\([^\\]\\|^\\)" (string str-terminator))
+              (save-excursion (beginning-of-line) (point)) t))
+            ((nth 7 parse)
+             (goto-char (nth 8 parse)))
+            ((or (nth 4 parse)
+                 (and (eq (char-before) ?/) (eq (char-after) ?*)))
+             (re-search-backward "/\\*"))
+            ((and (not (and orig-macro-start
+                            (>= (point) orig-macro-start)))
+                  (typescript--beginning-of-macro)))
+            (t
+             (setq count (1- count))))))
+  (point))
+
+
+(defun typescript--re-search-backward (regexp &optional bound noerror count)
+  "Search backward, ignoring strings, preprocessor macros, and comments.
+
+This function invokes `re-search-backward' but treats the buffer
+as if strings, preprocessor macros, and comments have been
+removed.
+
+If invoked while inside a macro, treat the macro as normal text."
+  (let ((saved-point (point))
+        (search-expr
+         (cond ((null count)
+                '(typescript--re-search-backward-inner regexp bound 1))
+               ((< count 0)
+                '(typescript--re-search-forward-inner regexp bound (- count)))
+               ((> count 0)
+                '(typescript--re-search-backward-inner regexp bound count)))))
+    (condition-case err
+        (eval search-expr)
+      (search-failed
+       (goto-char saved-point)
+       (unless noerror
+         (error (error-message-string err)))))))
+
+
+(defconst typescript--possibly-braceless-keyword-re
+  (typescript--regexp-opt-symbol
+   '("catch" "do" "else" "finally" "for" "if" "try" "while" "with"
+     "each"))
+  "Regexp matching keywords optionally followed by an opening brace.")
+
+(defconst typescript--indent-keyword-re
+  (typescript--regexp-opt-symbol '("in" "instanceof"))
+  "Regexp matching keywords that affect indentation of continued expressions.")
+
+(defconst typescript--indent-operator-re
+  (concat "[-+*/%<>=&^|?:.]\\([^-+*/]\\|$\\)\\|" typescript--indent-keyword-re)
+  "Regexp matching operators that affect indentation of continued expressions.")
+
+
+(defun typescript--looking-at-operator-p ()
+  "Return non-nil if point is on a typescript operator, other than a comma."
+  (save-match-data
+    (and (looking-at typescript--indent-operator-re)
+         (or (not (looking-at ":"))
+             (save-excursion
+               (and (typescript--re-search-backward "[?:{]\\|\\_<case\\_>" nil t)
+                    (looking-at "?"))))
+         ;; Do not identify forward slashes appearing in a "list" as
+         ;; an operator. The lists are: arrays, or lists of
+         ;; arguments. In this context, they must be part of regular
+         ;; expressions, and not math operators.
+         (not (and (looking-at "/")
+                   (save-excursion
+                     (typescript--backward-syntactic-ws)
+                     (memq (char-before) '(?, ?\[ ?\()))))
+         ;; Do not identify methods, or fields, that are named "in" or
+         ;; "instanceof" as being operator keywords.
+         (not (and
+               (looking-at typescript--indent-keyword-re)
+               (save-excursion
+                 (typescript--backward-syntactic-ws)
+                 (memq (char-before) '(?, ?{ ?} ?\;)))))
+         (not (and
+               (looking-at "*")
+               ;; Generator method (possibly using computed property).
+               (looking-at (concat "\\* *\\(?:\\[\\|" js--name-re
+                                   " *(\\)"))
+               (save-excursion
+                 (typescript--backward-syntactic-ws)
+                 ;; We might misindent some expressions that would
+                 ;; return NaN anyway.  Shouldn't be a problem.
+                 (memq (char-before) '(?, ?} ?{ ?\;)))))))
+)
+
+
+(defun typescript--continued-expression-p ()
+  "Return non-nil if the current line continues an expression."
+  (save-excursion
+    (back-to-indentation)
+    (and
+     ;; Don't identify the spread syntax or rest operator as a
+     ;; "continuation".
+     (not (looking-at "\\.\\.\\."))
+     (or (typescript--looking-at-operator-p)
+         (and (typescript--re-search-backward "\n" nil t)
+              (progn
+                (skip-chars-backward " \t")
+                (or (bobp) (backward-char))
+                (and (> (point) (point-min))
+                     (save-excursion (backward-char) (not (looking-at "[/*]/")))
+                     (typescript--looking-at-operator-p)
+                     (and (progn (backward-char)
+                                 (not (looking-at "++\\|--\\|/[/*]")))))))))))
+
+
+(defun typescript--end-of-do-while-loop-p ()
+  "Return non-nil if point is on the \"while\" of a do-while statement.
+Otherwise, return nil.  A braceless do-while statement spanning
+several lines requires that the start of the loop is indented to
+the same column as the current line."
+  (interactive)
+  (save-excursion
+    (save-match-data
+      (when (looking-at "\\s-*\\_<while\\_>")
+	(if (save-excursion
+	      (skip-chars-backward "[ \t\n]*}")
+	      (looking-at "[ \t\n]*}"))
+	    (save-excursion
+	      (backward-list) (forward-symbol -1) (looking-at "\\_<do\\_>"))
+	  (typescript--re-search-backward "\\_<do\\_>" (point-at-bol) t)
+	  (or (looking-at "\\_<do\\_>")
+	      (let ((saved-indent (current-indentation)))
+		(while (and (typescript--re-search-backward "^\\s-*\\_<" nil t)
+			    (/= (current-indentation) saved-indent)))
+		(and (looking-at "\\s-*\\_<do\\_>")
+		     (not (typescript--re-search-forward
+			   "\\_<while\\_>" (point-at-eol) t))
+		     (= (current-indentation) saved-indent)))))))))
+
+
+(defun typescript--ctrl-statement-indentation ()
+  "Helper function for `typescript--proper-indentation'.
+Return the proper indentation of the current line if it starts
+the body of a control statement without braces; otherwise, return
+nil."
+  (save-excursion
+    (back-to-indentation)
+    (when (save-excursion
+            (and (not (eq (point-at-bol) (point-min)))
+                 (not (looking-at "[{]"))
+                 (progn
+                   (typescript--re-search-backward "[[:graph:]]" nil t)
+                   (or (eobp) (forward-char))
+                   (when (= (char-before) ?\)) (backward-list))
+                   (skip-syntax-backward " ")
+                   (skip-syntax-backward "w_")
+                   (looking-at typescript--possibly-braceless-keyword-re))
+                 (not (typescript--end-of-do-while-loop-p))))
+      (save-excursion
+        (goto-char (match-beginning 0))
+        (+ (current-indentation) typescript-indent-level)))))
+
+(defun typescript--get-c-offset (symbol anchor)
+  (let ((c-offsets-alist
+         (list (cons 'c typescript-comment-lineup-func))))
+    (c-get-syntactic-indentation (list (cons symbol anchor)))))
+
 (defun typescript--backward-over-generic-parameter-list ()
   "Search backward for the start of a generic's parameter list and move to it.
 
@@ -240,7 +535,7 @@ This function must be called with the point placed before an
 opening curly brace.  It will try to skip over the type
 annotation that would mark the return value of a function and
 move to the end of the parameter list.  If it is unsuccessful, it
-does not move the point.  \"Unsuccessful\" here also means that
+does not move the point. \"Unsuccessful\" here also means that
 the position at which we started did not in fact mark the
 beginning of a function. The curly brace belonged to some other
 syntactic construct than a function.
@@ -265,7 +560,7 @@ moved on success."
                          (condition-case nil
                              (backward-sexp)
                            (scan-error nil)))
-                       (js--backward-syntactic-ws)
+                       (typescript--backward-syntactic-ws)
                        (let ((before (char-before)))
                          ;; Check whether we are at "):".
                          (when (and (eq before ?\:)
@@ -302,7 +597,7 @@ moved on success."
                            (cl-return-from search-loop nil))))))
           ;; This handles the case of a function without return type annotation.
           (progn
-            (js--backward-syntactic-ws)
+            (typescript--backward-syntactic-ws)
             (when (eq (char-before) ?\))
               (point))))))
     (when location
@@ -313,15 +608,15 @@ moved on success."
   (save-excursion
     (back-to-indentation)
     (cond ((nth 4 parse-status)
-           (js--get-c-offset 'c (nth 8 parse-status)))
+           (typescript--get-c-offset 'c (nth 8 parse-status)))
           ((nth 8 parse-status) 0) ; inside string
-          ((js--ctrl-statement-indentation))
+          ((typescript--ctrl-statement-indentation))
           ((eq (char-after) ?#) 0)
-          ((save-excursion (js--beginning-of-macro)) 4)
+          ((save-excursion (typescript--beginning-of-macro)) 4)
           ((nth 1 parse-status)
            (let ((same-indent-p (looking-at
                                  "[]})]\\|\\_<case\\_>\\|\\_<default\\_>"))
-                 (continued-expr-p (js--continued-expression-p)))
+                 (continued-expr-p (typescript--continued-expression-p)))
              (goto-char (nth 1 parse-status))
              (if (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)")
                  (progn
@@ -338,17 +633,17 @@ moved on success."
                    (cond (same-indent-p
                           (current-column))
                          (continued-expr-p
-                          (+ (current-column) (* 2 js-indent-level)
-                             js-expr-indent-offset))
+                          (+ (current-column) (* 2 typescript-indent-level)
+                             typescript-expr-indent-offset))
                          (t
-                          (+ (current-column) js-indent-level))))
+                          (+ (current-column) typescript-indent-level))))
                (unless same-indent-p
                  (forward-char)
                  (skip-chars-forward " \t"))
                (current-column))))
 
-          ((js--continued-expression-p)
-           (+ js-indent-level js-expr-indent-offset))
+          ((typescript--continued-expression-p)
+           (+ typescript-indent-level typescript-expr-indent-offset))
           (t 0))))
 
 (defun typescript-indent-line ()
@@ -361,6 +656,7 @@ moved on success."
            (offset (- (current-column) (current-indentation))))
       (indent-line-to (typescript--proper-indentation parse-status))
       (when (> offset 0) (move-to-column (+ offset (current-indentation)))))))
+
 
 
 ;;; compilation-mode support
