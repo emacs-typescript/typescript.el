@@ -1,4 +1,4 @@
-;;; typescript-mode.el --- Major mode for editing TypeScript  -*- lexical-binding: t -*-
+;;; typescript-mode.el --- Major mode for editing TypeScript
 
 ;; -----------------------------------------------------------------------------------
 ;;     TypeScript support for Emacs
