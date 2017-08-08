@@ -739,7 +739,7 @@ moved on success."
   (setq-local open-paren-in-column-0-is-defun-start nil)
   (setq-local font-lock-defaults (list typescript--font-lock-keywords))
   (setq-local syntax-propertize-function #'js-syntax-propertize)
-  (setq-local prettify-symbols-alist js--prettify-symbols-alist)
+  ;; (setq-local prettify-symbols-alist js--prettify-symbols-alist)
 
   (setq-local parse-sexp-ignore-comments t)
   (setq-local parse-sexp-lookup-properties t)
