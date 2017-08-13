@@ -130,6 +130,19 @@ a severity set to WARNING, no rule name."
     (forward-char 1)
     (should (= 8 (current-column)))))
 
+(ert-deftest should-not-trigger-js-mode-hook ()
+  (with-temp-buffer
+
+    ;; prepare js-mode and hooks
+    (require 'js)
+    (let ((js-activated nil))
+      (add-hook 'js-mode-hook (lambda ()
+                           (setq js-activated t)))
+
+      ;; activate our code
+      (typescript-mode)
+      (should (= nil js-activated)))))
+
 (provide 'typescript-mode-tests)
 
 ;;; typescript-mode-tests.el ends here
