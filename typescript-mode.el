@@ -1808,18 +1808,24 @@ moved on success."
           (save-excursion
             (loop named search-loop
                   do (progn
-                       (if (eq (char-before) ?>)
-                           (if (looking-back "=>" (- (point) 2))
-                               ;; Move back over the arrow of an arrow function.
-                               (backward-char 2)
-                             ;; Otherwise, we are looking at the end of the parameters
-                             ;; list of a generic. We need to move back over the list.
-                             (backward-char)
-                             (typescript--backward-over-generic-parameter-list))
-                         ;; General case: we just move back over the current sexp.
+                       (cond
+                        ;; Looking at the arrow of an arrow function:
+                        ;; move back over the arrow.
+                        ((looking-back "=>" (- (point) 2))
+                         (backward-char 2))
+                        ;; Looking at the end of the parameters list
+                        ;; of a generic: move back over the list.
+                        ((eq (char-before) ?>)
+                         (backward-char)
+                         (typescript--backward-over-generic-parameter-list))
+                        ;; Looking at a union: skip over the character.
+                        ((eq (char-before) ?|)
+                         (backward-char))
+                        ;; General case: we just move back over the current sexp.
+                        (t
                          (condition-case nil
                              (backward-sexp)
-                           (scan-error nil)))
+                           (scan-error nil))))
                        (typescript--backward-syntactic-ws)
                        (let ((before (char-before)))
                          ;; Check whether we are at "):".
@@ -1884,11 +1890,6 @@ moved on success."
                    (when (or (typescript--backward-to-parameter-list)
                              (eq (char-before) ?\)))
                      (backward-list))
-                   ;; If the parameter list is preceded by (, take the
-                   ;; start of the parameter list as our reference.
-                   ;; This allows handling functions in parameter
-                   ;; lists. Otherwise, we want to go back to the
-                   ;; start of function declaration.
                    (back-to-indentation)
                    (cond (same-indent-p
                           (current-column))
