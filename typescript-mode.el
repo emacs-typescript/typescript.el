@@ -55,39 +55,6 @@
 
 
 
-(defun typescript--regexp-opt-symbol (list)
-  "Like `regexp-opt', but surround the result with `\\\\_<' and `\\\\_>'."
-  (concat "\\_<" (regexp-opt list t) "\\_>"))
-
-(defconst typescript--keyword-re
-  (js--regexp-opt-symbol
-   '("abstract" "any" "as" "async" "await" "boolean" "break" "case" "catch" "class" "const"
-     "constructor" "continue" "declare" "default" "delete" "do" "else"
-     "enum" "export" "extends" "extern" "false" "finally" "for"
-     "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
-     "interface" "keyof" "let" "module" "namespace" "new" "null" "number" "object" "of"
-     "private" "protected" "public" "readonly" "return" "set" "static" "string"
-     "super" "switch"  "this" "throw" "true"
-     "try" "type" "typeof" "var" "void"
-     "while" ))
-  "Regexp matching any typescript keyword.")
-
-(defconst typescript--basic-type-re
-  (js--regexp-opt-symbol
-   '("bool" "boolean" "string" "number" "any" "void"))
-  "Regular expression matching any predefined type in typescript.")
-
-
-(defconst typescript--font-lock-keywords-2
-  (append js--font-lock-keywords-1
-          (list (list typescript--keyword-re 1 font-lock-keyword-face)
-                (list "\\_<for\\_>"
-                      "\\s-+\\(each\\)\\_>" nil nil
-                      (list 1 'font-lock-keyword-face))
-                (cons typescript--basic-type-re font-lock-type-face)
-                (cons js--constant-re font-lock-constant-face)))
-  "Level two font lock keywords for `js-mode'.")
-
 
 ;;; User Customization
 
@@ -118,6 +85,46 @@ in typescript mode."
   "Lineup function for `cc-mode-style', for C comments in `typescript-mode'."
   :type 'function
   :group 'typescript)
+
+
+;;; Font lock
+
+(defun typescript--regexp-opt-symbol (list)
+  "Like `regexp-opt', but surround the result with `\\\\_<' and `\\\\_>'."
+  (concat "\\_<" (regexp-opt list t) "\\_>"))
+
+(defconst typescript--keyword-re
+  (js--regexp-opt-symbol
+   '("abstract" "any" "as" "async" "await" "boolean" "break" "case" "catch" "class" "const"
+     "constructor" "continue" "declare" "default" "delete" "do" "else"
+     "enum" "export" "extends" "extern" "false" "finally" "for"
+     "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
+     "interface" "keyof" "let" "module" "namespace" "new" "null" "number" "object" "of"
+     "private" "protected" "public" "readonly" "return" "set" "static" "string"
+     "super" "switch"  "this" "throw" "true"
+     "try" "type" "typeof" "var" "void"
+     "while" ))
+  "Regexp matching any typescript keyword.")
+
+(defconst typescript--basic-type-re
+  (js--regexp-opt-symbol
+   '("bool" "boolean" "string" "number" "any" "void"))
+  "Regular expression matching any predefined type in typescript.")
+
+
+(defconst typescript--font-lock-keywords-1
+  js--font-lock-keywords-1
+  "Level one font lock keywords for `typescript-mode'.")
+
+(defconst typescript--font-lock-keywords-2
+  (append typescript--font-lock-keywords-1
+          (list (list typescript--keyword-re 1 font-lock-keyword-face)
+                (list "\\_<for\\_>"
+                      "\\s-+\\(each\\)\\_>" nil nil
+                      (list 1 'font-lock-keyword-face))
+                (cons typescript--basic-type-re font-lock-type-face)
+                (cons js--constant-re font-lock-constant-face)))
+  "Level two font lock keywords for `typescript-mode'.")
 
 (defconst typescript--font-lock-keywords-3
   `(
@@ -235,7 +242,7 @@ in typescript mode."
 
 
 (defconst typescript--font-lock-keywords
-  '(typescript--font-lock-keywords-3 js--font-lock-keywords-1
+  '(typescript--font-lock-keywords-3 typescript--font-lock-keywords-1
                                    typescript--font-lock-keywords-2
                                    typescript--font-lock-keywords-3)
   "Font lock keywords for `js-mode'.  See `font-lock-keywords'.")
