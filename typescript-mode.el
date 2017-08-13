@@ -740,6 +740,9 @@ moved on success."
 (define-derived-mode typescript-mode js-mode "TypeScript"
   "Major mode for editing TypeScript."
   :group 'typescript
+
+  ;; TODO: make mode NOT trigger js-mode!
+
   (setq-local indent-line-function #'typescript-indent-line)
   (setq-local beginning-of-defun-function #'js-beginning-of-defun)
   (setq-local end-of-defun-function #'js-end-of-defun)
