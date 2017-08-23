@@ -130,6 +130,41 @@ a severity set to WARNING, no rule name."
     (forward-char 1)
     (should (= 8 (current-column)))))
 
+(ert-deftest indentation-does-not-hang-on-multiline-string ()
+  "Testcase for https://github.com/ananthakumaran/typescript.el/issues/20"
+
+  (with-temp-buffer
+    (typescript-mode)
+
+    (insert "let multiLineString = \"line 1")
+    (newline-and-indent)
+    (insert "// and so we continue")
+    (newline-and-indent)
+    ;; completing and not locking up is test-success!
+    ))
+
+(defun test-re-search (searchee contents offset)
+  (with-temp-buffer
+    (typescript-mode)
+
+    (insert contents)
+    (goto-char (- (point-max) offset))
+
+    (should (= 5 (typescript--re-search-backward-inner searchee nil 1)))))
+
+(ert-deftest re-search-backwards-skips-single-line-strings ()
+  (test-re-search "token" "let token = \"token in string-thing\";" 2))
+
+(ert-deftest re-search-backwards-skips-multi-line-strings ()
+  (test-re-search "token" "let token = \"token in\n multi-line token string\";" 2))
+
+(ert-deftest re-search-backwards-skips-single-line-comments ()
+  (test-re-search "token" "let token; // token in comment" 0))
+
+(ert-deftest re-search-backwards-skips-multi-line-comments ()
+  (test-re-search "token" "let token; /* token in \nmulti-line token comment" 0))
+
+
 (provide 'typescript-mode-tests)
 
 ;;; typescript-mode-tests.el ends here
