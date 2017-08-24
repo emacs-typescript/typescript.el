@@ -414,6 +414,147 @@ Match group 1 is the name of the macro.")
    :paren-depth most-negative-fixnum
    :type 'toplevel))
 
+;; Note that all typedoc/jsdoc regexp by themselves would match occurrences that appear outside
+;; documentation comments. The logic that uses these regexps must guard against it.
+(defconst typescript-typedoc-link-tag-regexp
+  "\\[\\[.*?\\]\\]"
+  "Matches a typedoc link.")
+
+(defconst typescript-typedoc-literal-markup-regexp
+  "\\(`+\\).*?\\1"
+  "Matches a typedoc keyword markup.")
+
+;; This was taken from js2-mode.
+(defconst typescript-jsdoc-param-tag-regexp
+  (concat "\\(?:^\\s-*\\*+\\|/\\*\\*\\)\\s-*\\(@"
+          "\\(?:param\\|arg\\(?:ument\\)?\\|prop\\(?:erty\\)?\\)"
+          "\\)"
+          "\\s-*\\({[^}]+}\\)?"         ; optional type
+          "\\s-*\\[?\\([[:alnum:]_$\.]+\\)?\\]?"  ; name
+          "\\_>")
+  "Matches jsdoc tags with optional type and optional param name.")
+
+;; This was taken from js2-mode.
+(defconst typescript-jsdoc-typed-tag-regexp
+  (concat "^\\s-*\\*+\\s-*\\(@\\(?:"
+          (regexp-opt
+           '("enum"
+             "extends"
+             "field"
+             "id"
+             "implements"
+             "lends"
+             "mods"
+             "requires"
+             "return"
+             "returns"
+             "throw"
+             "throws"))
+          "\\)\\)\\s-*\\({[^}]+}\\)?")
+  "Matches jsdoc tags with optional type.")
+
+;; This was taken from js2-mode.
+(defconst typescript-jsdoc-arg-tag-regexp
+  (concat "^\\s-*\\*+\\s-*\\(@\\(?:"
+          (regexp-opt
+           '("alias"
+             "augments"
+             "borrows"
+             "callback"
+             "bug"
+             "base"
+             "config"
+             "default"
+             "define"
+             "emits"
+             "exception"
+             "fires"
+             "func"
+             "function"
+             "member"
+             "memberOf"
+             "method"
+             "name"
+             "namespace"
+             "since"
+             "suppress"
+             "this"
+             "throws"
+             "type"
+             "version"))
+          "\\)\\)\\s-+\\([^ \t]+\\)")
+  "Matches jsdoc tags with a single argument.")
+
+;; This was taken from js2-mode.
+(defconst typescript-jsdoc-empty-tag-regexp
+  (concat "^\\s-*\\*+\\s-*\\(@\\(?:"
+          (regexp-opt
+           '("addon"
+             "author"
+             "class"
+             "const"
+             "constant"
+             "constructor"
+             "constructs"
+             "copyright"
+             "deprecated"
+             "desc"
+             "description"
+             "event"
+             "example"
+             "exec"
+             "export"
+             "fileoverview"
+             "final"
+             "func"
+             "function"
+             "hidden"
+             "ignore"
+             "implicitCast"
+             "inheritDoc"
+             "inner"
+             "interface"
+             "license"
+             "method"
+             "noalias"
+             "noshadow"
+             "notypecheck"
+             "override"
+             "owner"
+             "preserve"
+             "preserveTry"
+             "private"
+             "protected"
+             "public"
+             "static"
+             "supported"
+             ))
+          "\\)\\)\\s-*")
+  "Matches empty jsdoc tags.")
+
+;; Note that this regexp by itself would match tslint flags that appear inside
+;; strings. The logic using this regexp must guard against it.
+(defconst typescript-tslint-flag-regexp
+  "\\(?://\\|/\\*\\)\\s-*\\(tslint:.*?\\)\\(?:\\*/\\|$\\)"
+  "Matches tslint flags.")
+
+;;; Faces
+
+(defface typescript-jsdoc-tag
+  '((t :foreground "SlateGray"))
+  "Face used to highlight @whatever tags in jsdoc comments."
+  :group 'typescript)
+
+(defface typescript-jsdoc-type
+  '((t :foreground "SteelBlue"))
+  "Face used to highlight {FooBar} types in jsdoc comments."
+  :group 'typescript)
+
+(defface typescript-jsdoc-value
+  '((t :foreground "gold4"))
+  "Face used to highlight tag values in jsdoc comments."
+  :group 'typescript)
+
 ;;; User Customization
 
 (defgroup typescript nil
@@ -1417,6 +1558,53 @@ point of view of font-lock.  It applies highlighting directly with
   ;; Matcher always "fails"
   nil)
 
+(defun typescript--in-documentation-comment-p ()
+  "Reports whether point is inside a documentation comment."
+  (let ((parse (syntax-ppss)))
+    (and
+     (nth 4 parse) ;; Inside a comment ...
+     (save-match-data
+       (save-excursion
+         (goto-char (nth 8 parse))
+         (looking-at "/\\*\\*")))))) ;; ... which starts with /**
+
+(defun typescript--documentation-font-lock-helper (re limit)
+  "This is a helper macro that determines whether jsdoc highlighting is to be applied,
+and searches for the next token to be highlighted."
+  (loop while (re-search-forward re limit t)
+        if (typescript--in-documentation-comment-p)
+        return (point)))
+
+(defun typescript--jsdoc-param-matcher (limit)
+  "Font-lock mode matcher that finds jsdoc parameter tags in documentation."
+  (typescript--documentation-font-lock-helper typescript-jsdoc-param-tag-regexp limit))
+
+(defun typescript--jsdoc-typed-tag-matcher (limit)
+  "Font-lock mode matcher that finds jsdoc typed tags in documentation."
+  (typescript--documentation-font-lock-helper typescript-jsdoc-typed-tag-regexp limit))
+
+(defun typescript--jsdoc-arg-tag-matcher (limit)
+  "Font-lock mode matcher that finds jsdoc tags that take one argument in documentation."
+  (typescript--documentation-font-lock-helper typescript-jsdoc-arg-tag-regexp limit))
+
+(defun typescript--jsdoc-empty-tag-matcher (limit)
+  "Font-lock mode matcher that finds jsdoc tags without argument in documentation."
+  (typescript--documentation-font-lock-helper typescript-jsdoc-empty-tag-regexp limit))
+
+(defun typescript--typedoc-link-matcher (limit)
+  "Font-lock mode matcher that finds typedoc links in documentation."
+  (typescript--documentation-font-lock-helper typescript-typedoc-link-tag-regexp limit))
+
+(defun typescript--typedoc-literal-markup-matcher (limit)
+  "Font-lock mode matcher that finds typedoc literal markup in documentation."
+  (typescript--documentation-font-lock-helper typescript-typedoc-literal-markup-regexp limit))
+
+(defun typescript--tslint-flag-matcher (limit)
+  "Font-lock mode matcher that finds tslint flags in comments."
+  (loop while (re-search-forward typescript-tslint-flag-regexp limit t)
+        if (nth 4 (syntax-ppss (match-beginning 1)))
+        return (point)))
+
 (defconst typescript--font-lock-keywords-3
   `(
     ;; This goes before keywords-2 so it gets used preferentially
@@ -1427,6 +1615,26 @@ point of view of font-lock.  It applies highlighting directly with
     ,@cpp-font-lock-keywords ; from font-lock.el
 
     ,@typescript--font-lock-keywords-2
+
+    (typescript--jsdoc-param-matcher (1 'typescript-jsdoc-tag t t)
+                                     (2 'typescript-jsdoc-type t t)
+                                     (3 'typescript-jsdoc-value t t))
+
+    (typescript--jsdoc-typed-tag-matcher (1 'typescript-jsdoc-tag t t)
+                                         (2 'typescript-jsdoc-type t t))
+
+    (typescript--jsdoc-arg-tag-matcher (1 'typescript-jsdoc-tag t t)
+                                       (2 'typescript-jsdoc-value t t))
+
+    (typescript--jsdoc-empty-tag-matcher (1 'typescript-jsdoc-tag t t))
+
+    (typescript--typedoc-link-matcher (0 'typescript-jsdoc-value t))
+
+    (typescript--typedoc-literal-markup-matcher
+     (0 'typescript-jsdoc-value t))
+
+    (typescript--tslint-flag-matcher
+     (1 font-lock-preprocessor-face t))
 
     ("\\.\\(prototype\\)\\_>"
      (1 font-lock-constant-face))
