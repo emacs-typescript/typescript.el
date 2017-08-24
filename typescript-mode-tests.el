@@ -164,6 +164,77 @@ a severity set to WARNING, no rule name."
 (ert-deftest re-search-backwards-skips-multi-line-comments ()
   (test-re-search "token" "let token; /* token in \nmulti-line token comment" 0))
 
+;; Adapted from jdee-mode's test suite.
+(defmacro test-with-temp-buffer (content &rest body)
+  "Fill a temporary buffer with `CONTENT' and eval `BODY' in it."
+  (declare (debug t)
+           (indent 1))
+  `(with-temp-buffer
+     (insert ,content)
+     (typescript-mode)
+     (font-lock-fontify-buffer)
+     (goto-char (point-min))
+     ,@body))
+
+(defun get-face-at (loc)
+  "Get the face at `LOC'. If it is not a number, then we `re-search-forward' with `LOC'
+as the search pattern."
+  (when (not (numberp loc))
+    (save-excursion
+      (re-search-forward loc)
+      (setq loc (match-beginning 0))))
+  (get-text-property loc 'face))
+
+(setq font-lock-contents
+ " * @param {Something} bar A parameter. References [[moo]] and [[foo]].
+ * @param second May hold ``x`` or ``y``.")
+
+(defun font-lock-test (contents expected)
+  "Perform a test on our template. `CONTENTS' is the string to
+put in the temporary buffer. `EXPECTED' is the expected
+results. It should be a list of (LOCATION . FACE) pairs."
+  (test-with-temp-buffer
+   contents
+   (dolist (spec expected)
+     (should (eq (get-face-at (car spec)) (cdr spec))))))
+
+(ert-deftest font-lock/documentation-in-documentation-comments ()
+  "Documentation in documentation comments should be fontified as
+documentation."
+  (font-lock-test
+   (concat "/**\n" font-lock-contents "\n*/")
+   '((1 . font-lock-comment-delimiter-face)
+     (5 . font-lock-comment-face)
+     ("@param" . typescript-jsdoc-tag)
+     ("{Something}" . typescript-jsdoc-type)
+     ("bar" . typescript-jsdoc-value)
+     ("\\[\\[moo\\]\\]" . typescript-jsdoc-value)
+     ("\\[\\[foo\\]\\]" . typescript-jsdoc-value)
+     ("``x``" . typescript-jsdoc-value)
+     ("``y``" . typescript-jsdoc-value))))
+
+(ert-deftest font-lock/no-documentation-in-non-documentation-comments ()
+  "Documentation tags that are not in documentation comments
+should not be fontified as documentation."
+  (test-with-temp-buffer
+   (concat "/*\n" font-lock-contents "\n*/\n")
+   (let ((loc 3))
+     ;; Make sure we start with the right face.
+     (should (eq (get-face-at loc) font-lock-comment-face))
+     (should (eq (text-property-not-all loc (point-max) 'face font-lock-comment-face)
+                 (1- (point-max)))))))
+
+(ert-deftest font-lock/no-documentation-in-strings ()
+  "Documentation tags that are not in strings should not be
+fontified as documentation."
+  (test-with-temp-buffer
+   (concat "const x = \"/**" font-lock-contents "*/\";")
+   (let ((loc (search-forward "\"")))
+     ;; Make sure we start with the right face.
+     (should (eq (get-face-at loc) font-lock-string-face))
+     ;; Make sure the face does not change later.
+     (should (eq (text-property-not-all loc (point-max) 'face font-lock-string-face)
+                 (1- (point-max)))))))
 
 (provide 'typescript-mode-tests)
 
