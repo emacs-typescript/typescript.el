@@ -2487,23 +2487,7 @@ Key bindings:
     (c-setup-paragraph-variables))
 
   (set (make-local-variable 'syntax-begin-function)
-       #'typescript--syntax-begin-function)
-
-  ;; Important to fontify the whole buffer syntactically! If we don't,
-  ;; then we might have regular expression literals that aren't marked
-  ;; as strings, which will screw up parse-partial-sexp, scan-lists,
-  ;; etc. and and produce maddening "unbalanced parenthesis" errors.
-  ;; When we attempt to find the error and scroll to the portion of
-  ;; the buffer containing the problem, JIT-lock will apply the
-  ;; correct syntax to the regular expresion literal and the problem
-  ;; will mysteriously disappear.
-  (font-lock-set-defaults)
-
-  (let (font-lock-keywords)         ; leaves syntactic keywords intact
-    ;; Avoid byte-compilation errors.  `font-lock-fontify-buffer' is
-    ;; marked as interactive only in Emacs 25.
-    (with-no-warnings
-      (font-lock-fontify-buffer))))
+       #'typescript--syntax-begin-function))
 
 ;; Set our custom predicate for flyspell prog mode
 (put 'typescript-mode 'flyspell-mode-predicate
