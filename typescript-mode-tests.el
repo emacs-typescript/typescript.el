@@ -236,6 +236,47 @@ fontified as documentation."
      (should (eq (text-property-not-all loc (point-max) 'face font-lock-string-face)
                  (1- (point-max)))))))
 
+(defun flyspell-predicate-test (search-for)
+  "This function runs a test on
+`typescript--flyspell-mode-predicate'.  `SEARCH-FOR' is a string
+to search for in the current buffer before running
+`typescript--flyspell-mode-predicate'.  This test checks that the
+point has not moved.  It returns the value of returned by the
+invocation of `typescript--flyspell-mode-predicate'."
+  (search-forward search-for)
+  (let ((point-before (point)))
+    (prog1
+        (typescript--flyspell-mode-predicate)
+      ;; We should not have moved.
+      (should (eq (point) point-before)))
+  ))
+
+(ert-deftest flyspell-mode-predicate-skips-what-it-should ()
+  "Check that the custom flyspell predicate filters strings in
+import... from...."
+  (let (flyspell-generic-progmode-verify)
+    (fset 'flyspell-generic-progmode-verify (lambda () t))
+    ;; In the following searches we search for the starting quote of the strings
+    ;; to avoid hitting keywords. Moreover, the end position of the search is important.
+    ;; Flyspell puts point at the end of the word before calling the predicate. We must
+    ;; replicate that behavior here.
+    (test-with-temp-buffer
+     "import 'a';\nimport { x } from 'b';\nconst foo = 'c';import { x }\nfrom 'd';"
+     (should (not (flyspell-predicate-test "'a")))
+     (should (not (flyspell-predicate-test "'b")))
+     (should (flyspell-predicate-test "'c"))
+     (should (not (flyspell-predicate-test "'d"))))
+    (test-with-temp-buffer
+     ;; This is valid TypeScript.
+     "const from = 'a';"
+     (should (flyspell-predicate-test "'a")))
+    (test-with-temp-buffer
+     ;; TypeScript does not allow a function named "import" but object
+     ;; members may be named "import". So this *can* be valid
+     ;; TypeScript.
+     "x.import('a');"
+     (should (flyspell-predicate-test "'a")))))
+
 (provide 'typescript-mode-tests)
 
 ;;; typescript-mode-tests.el ends here
