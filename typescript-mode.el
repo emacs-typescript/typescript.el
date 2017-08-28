@@ -1739,6 +1739,36 @@ and searches for the next token to be highlighted."
             '(0 font-lock-variable-name-face))))
   "Level three font lock for `typescript-mode'.")
 
+(defun typescript--flyspell-mode-predicate ()
+  "A custom predicate to help `flyspell-prog-mode' determine whether a word should be checked."
+  ;; We depend on fontification for our results. font-lock-ensure is defined on
+  ;; Emacs 25 and over. Earlier versions use font-lock-fontify-buffer.
+  (if (fboundp 'font-lock-ensure)
+      (font-lock-ensure)
+    (font-lock-fontify-buffer))
+  (and
+   ;; Check with the default method that flyspell provides.
+   (flyspell-generic-progmode-verify)
+
+   ;;
+   ;; And eliminate cases specific to our mode we don't want to have
+   ;; spell-checked.
+   ;;
+
+   ;; Don't check the module names in import statements.
+   (save-excursion
+     (not (let* ((parse (syntax-ppss (1- (point))))
+                 (string-start-pos (and (nth 3 parse)
+                                        (nth 8 parse))))
+            (and string-start-pos
+                 (save-match-data
+                   ;; Move to back to the start of the string, then past any ws
+                   ;; and then past any non-ws to see if we have "from" or "import".
+                   (goto-char string-start-pos)
+                   (typescript--backward-syntactic-ws)
+                   (skip-syntax-backward "^-" (point-at-bol))
+                   (looking-at "from\\|import\\s-"))))))))
+
 (defun typescript--inside-pitem-p (pitem)
   "Return whether point is inside the given pitem's header or body."
   (typescript--ensure-cache)
@@ -2475,6 +2505,9 @@ Key bindings:
     (with-no-warnings
       (font-lock-fontify-buffer))))
 
+;; Set our custom predicate for flyspell prog mode
+(put 'typescript-mode 'flyspell-mode-predicate
+     'typescript--flyspell-mode-predicate)
 
 ;;;###autoload
 (eval-after-load 'folding
