@@ -236,6 +236,26 @@ fontified as documentation."
      (should (eq (text-property-not-all loc (point-max) 'face font-lock-string-face)
                  (1- (point-max)))))))
 
+(ert-deftest font-lock/immediate-doc ()
+  "Tests that it is not necessary to have the documentation tag on a
+new line after the start of '/**'."
+  (font-lock-test
+   ;; We have 4 comments here because we need to cover the multiple
+   ;; regexes that deal with the different types of jsdoc tags.
+   "/** @type {foo} */\n
+/** @alias bar */\n
+/** @author me */\n
+/** @param meow */"
+   '((1 . font-lock-comment-delimiter-face)
+     ("@type" . typescript-jsdoc-tag)
+     ("{foo}" . typescript-jsdoc-type)
+     ("@alias" . typescript-jsdoc-tag)
+     ("bar" . typescript-jsdoc-value)
+     ("@author" . typescript-jsdoc-tag)
+     ("me" . font-lock-comment-face)
+     ("@param" . typescript-jsdoc-tag)
+     ("meow" . typescript-jsdoc-value))))
+
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
 `typescript--flyspell-mode-predicate'.  `SEARCH-FOR' is a string

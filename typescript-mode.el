@@ -414,6 +414,9 @@ Match group 1 is the name of the macro.")
    :paren-depth most-negative-fixnum
    :type 'toplevel))
 
+;; When we say "jsdoc" here, we mean "jsdoc 3". There exist multiple dialects of
+;; "jsdoc documentation".
+
 ;; Note that all typedoc/jsdoc regexp by themselves would match occurrences that appear outside
 ;; documentation comments. The logic that uses these regexps must guard against it.
 (defconst typescript-typedoc-link-tag-regexp
@@ -424,9 +427,14 @@ Match group 1 is the name of the macro.")
   "\\(`+\\).*?\\1"
   "Matches a typedoc keyword markup.")
 
+(defconst typescript-jsdoc-before-tag-regexp
+  "\\(?:^\\s-*\\*+\\|/\\*\\*\\)\\s-*"
+  "Matches everything we allow before the @ of a jsdoc tag.")
+
 ;; This was taken from js2-mode.
 (defconst typescript-jsdoc-param-tag-regexp
-  (concat "\\(?:^\\s-*\\*+\\|/\\*\\*\\)\\s-*\\(@"
+  (concat typescript-jsdoc-before-tag-regexp
+          "\\(@"
           "\\(?:param\\|arg\\(?:ument\\)?\\|prop\\(?:erty\\)?\\)"
           "\\)"
           "\\s-*\\({[^}]+}\\)?"         ; optional type
@@ -436,7 +444,8 @@ Match group 1 is the name of the macro.")
 
 ;; This was taken from js2-mode.
 (defconst typescript-jsdoc-typed-tag-regexp
-  (concat "^\\s-*\\*+\\s-*\\(@\\(?:"
+  (concat typescript-jsdoc-before-tag-regexp
+          "\\(@\\(?:"
           (regexp-opt
            '("enum"
              "extends"
@@ -449,13 +458,15 @@ Match group 1 is the name of the macro.")
              "return"
              "returns"
              "throw"
-             "throws"))
+             "throws"
+             "type"))
           "\\)\\)\\s-*\\({[^}]+}\\)?")
   "Matches jsdoc tags with optional type.")
 
 ;; This was taken from js2-mode.
 (defconst typescript-jsdoc-arg-tag-regexp
-  (concat "^\\s-*\\*+\\s-*\\(@\\(?:"
+  (concat typescript-jsdoc-before-tag-regexp
+          "\\(@\\(?:"
           (regexp-opt
            '("alias"
              "augments"
@@ -480,14 +491,14 @@ Match group 1 is the name of the macro.")
              "suppress"
              "this"
              "throws"
-             "type"
              "version"))
           "\\)\\)\\s-+\\([^ \t]+\\)")
   "Matches jsdoc tags with a single argument.")
 
 ;; This was taken from js2-mode.
 (defconst typescript-jsdoc-empty-tag-regexp
-  (concat "^\\s-*\\*+\\s-*\\(@\\(?:"
+  (concat typescript-jsdoc-before-tag-regexp
+          "\\(@\\(?:"
           (regexp-opt
            '("addon"
              "author"
