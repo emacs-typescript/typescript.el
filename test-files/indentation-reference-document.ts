@@ -161,6 +161,10 @@ namespace ts.server {
             2 :
             3;
 
+        const e2 = b ?
+            { a: 1 } :
+            3;
+
         const f = window
             .document;
 
