@@ -104,6 +104,10 @@ and group 3 is the 'function' keyword.")
   "Regexp matching a typescript explicit prototype \"class\" declaration.
 An example of this is \"Class.prototype = { method1: ...}\".")
 
+(defconst typescript--module-declaration-re
+  "^\\s-*\\(?:declare\\|\\(?:export\\(?:\\s-+default\\)?\\)\\)?"
+  "Regexp matching ambient declaration modifier or export declaration")
+
 ;; var NewClass = BaseClass.extend(
 (defconst typescript--mp-class-decl-re
   (concat "^\\s-*var\\s-+"
@@ -249,7 +253,8 @@ name as matched contains
 
 (defconst typescript--function-heading-1-re
   (concat
-   "^\\s-*function\\s-+\\(" typescript--name-re "\\)")
+   typescript--module-declaration-re
+   "\\s-*function\\s-+\\(" typescript--name-re "\\)")
   "Regexp matching the start of a typescript function header.
 Match group 1 is the name of the function.")
 
