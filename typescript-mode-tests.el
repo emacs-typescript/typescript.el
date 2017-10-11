@@ -256,18 +256,32 @@ new line after the start of '/**'."
      ("@param" . typescript-jsdoc-tag)
      ("meow" . typescript-jsdoc-value))))
 
+(defun copy-test-n (n location-root expected)
+  (let (tests)
+    (dotimes (i n tests)
+      (setq tests
+            (cons (cons (concat location-root (number-to-string i)) expected)
+                  tests)))))
+
 (ert-deftest font-lock/function-definition-prefixes ()
   "Tests that function names are highlighted in definitions, even
 when prefixed with module modifiers."
   (font-lock-test
-   "function basicDefn(x: number, y: string): boolean {}\n
-export function exportedDefn(x: number, y: string): boolean {}\n
-export default function exportedDefaultDefn(x: number, y: string): boolean {}\n
-declare function declareFunctionDefn(x: number, y: string): boolean;"
-   '(("basicDefn" . font-lock-function-name-face)
-     ("exportedDefn" . font-lock-function-name-face)
-     ("exportedDefaultDefn" . font-lock-function-name-face)
-     ("declareFunctionDefn" . font-lock-function-name-face))))
+   "function basicDefn(x0: xty0, y0: yty0): ret0 {}\n
+export function exportedDefn(x1: xty1, y1: yty1): ret1 {}\n
+export default function exportedDefaultDefn(x2: xty2, y2: yty2): ret2 {}\n
+declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
+   (append
+    '(("basicDefn" . font-lock-function-name-face)
+      ("exportedDefn" . font-lock-function-name-face)
+      ("exportedDefaultDefn" . font-lock-function-name-face)
+      ("declareFunctionDefn" . font-lock-function-name-face))
+    (copy-test-n 4 "x" font-lock-variable-name-face)
+    (copy-test-n 4 "y" font-lock-variable-name-face)
+    (copy-test-n 4 "xty" font-lock-variable-name-face)
+    (copy-test-n 4 "yty" font-lock-variable-name-face)
+    ;; Return types are not highlighted currently.
+    (copy-test-n 4 "ret" nil))))
 
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
