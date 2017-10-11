@@ -256,6 +256,19 @@ new line after the start of '/**'."
      ("@param" . typescript-jsdoc-tag)
      ("meow" . typescript-jsdoc-value))))
 
+(ert-deftest font-lock/function-definition-prefixes ()
+  "Tests that function names are highlighted in definitions, even
+when prefixed with module modifiers."
+  (font-lock-test
+   "function basicDefn(x: number, y: string): boolean {}\n
+export function exportedDefn(x: number, y: string): boolean {}\n
+export default function exportedDefaultDefn(x: number, y: string): boolean {}\n
+declare function declareFunctionDefn(x: number, y: string): boolean;"
+   '(("basicDefn" . font-lock-function-name-face)
+     ("exportedDefn" . font-lock-function-name-face)
+     ("exportedDefaultDefn" . font-lock-function-name-face)
+     ("declareFunctionDefn" . font-lock-function-name-face))))
+
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
 `typescript--flyspell-mode-predicate'.  `SEARCH-FOR' is a string
