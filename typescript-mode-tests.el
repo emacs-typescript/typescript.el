@@ -192,11 +192,16 @@ as the search pattern."
 (defun font-lock-test (contents expected)
   "Perform a test on our template. `CONTENTS' is the string to
 put in the temporary buffer. `EXPECTED' is the expected
-results. It should be a list of (LOCATION . FACE) pairs."
+results. It should be a list of (LOCATION . FACE) pairs, where
+LOCATION can be either a single location, or list of locations,
+that are all expected to have the same face."
   (test-with-temp-buffer
    contents
    (dolist (spec expected)
-     (should (eq (get-face-at (car spec)) (cdr spec))))))
+     (if (listp (car spec))
+         (dolist (source (car spec))
+           (should (eq (get-face-at source) (cdr spec))))
+       (should (eq (get-face-at (car spec)) (cdr spec)))))))
 
 (ert-deftest font-lock/documentation-in-documentation-comments ()
   "Documentation in documentation comments should be fontified as
@@ -256,13 +261,6 @@ new line after the start of '/**'."
      ("@param" . typescript-jsdoc-tag)
      ("meow" . typescript-jsdoc-value))))
 
-(defun copy-test-n (n location-root expected)
-  (let (tests)
-    (dotimes (i n tests)
-      (setq tests
-            (cons (cons (concat location-root (number-to-string i)) expected)
-                  tests)))))
-
 (ert-deftest font-lock/function-definition-prefixes ()
   "Tests that function names are highlighted in definitions, even
 when prefixed with module modifiers."
@@ -271,17 +269,14 @@ when prefixed with module modifiers."
 export function exportedDefn(x1: xty1, y1: yty1): ret1 {}\n
 export default function exportedDefaultDefn(x2: xty2, y2: yty2): ret2 {}\n
 declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
-   (append
     '(("basicDefn" . font-lock-function-name-face)
       ("exportedDefn" . font-lock-function-name-face)
       ("exportedDefaultDefn" . font-lock-function-name-face)
-      ("declareFunctionDefn" . font-lock-function-name-face))
-    (copy-test-n 4 "x" font-lock-variable-name-face)
-    (copy-test-n 4 "y" font-lock-variable-name-face)
-    (copy-test-n 4 "xty" font-lock-variable-name-face)
-    (copy-test-n 4 "yty" font-lock-variable-name-face)
-    ;; Return types are not highlighted currently.
-    (copy-test-n 4 "ret" nil))))
+      ("declareFunctionDefn" . font-lock-function-name-face)
+      (("x0" "x1" "x2" "x3") . font-lock-variable-name-face)
+      (("y0" "y1" "y2" "y3") . font-lock-variable-name-face)
+      (("ret0" "ret1" "ret2" "ret3") . nil))))
+
 
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
