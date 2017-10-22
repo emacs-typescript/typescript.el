@@ -277,6 +277,29 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
       (("y0" "y1" "y2" "y3") . font-lock-variable-name-face)
       (("ret0" "ret1" "ret2" "ret3") . nil))))
 
+(ert-deftest font-lock/regexp ()
+  "Regular expresssions should be fontified as string constant."
+  (let ((content "=/foo/ (/bar/ ,/baz/ :/buzz/"))
+    (font-lock-test content
+                    '(("=" . nil) ("/foo/" . font-lock-string-face)
+                      ("(" . nil) ("/bar/" . font-lock-string-face)
+                      ("," . nil) ("/baz/" . font-lock-string-face)
+                      (":" . nil) ("/buzz/" . font-lock-string-face)))))
+
+(ert-deftest font-lock/text-after-trailing-regexp-delim-should-not-be-fontified ()
+  "Text after trailing regular expression delimiter should not be fontified."
+  (test-with-temp-buffer
+      "=/foo/g something // comment"
+    (should (eq (get-face-at "g something") nil)))
+  (test-with-temp-buffer
+      "=/foo\\bar/g something // comment"
+    (should (eq (get-face-at "g something") nil)))
+  (test-with-temp-buffer
+      "=/foo\\\\bar/g something // comment"
+    (should (eq (get-face-at "g something") nil)))
+  (test-with-temp-buffer
+      "=/foo\\\\/g something // comment"
+    (should (eq (get-face-at "g something") nil))))
 
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
