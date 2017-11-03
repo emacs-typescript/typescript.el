@@ -2120,6 +2120,26 @@ moved on success."
     (when location
       (goto-char location))))
 
+(defun typescript--multiline-declaration-indentation ()
+  "Returns the proper indentation for lines which are continuations of
+multiline var/let/const declarations. If the point is not on such a line,
+returns nil."
+  (save-excursion
+    (beginning-of-line)
+    (let ((decl-re "^ *\\(var\\|const\\|let\\)\\_> *")
+          (is-looking-at-decl-keyword nil))
+      (save-match-data
+        (while (and (looking-back ",[[:space:]\n]+" nil)
+                    (= (forward-line -1) 0)
+                    (not (setq is-looking-at-decl-keyword (looking-at decl-re)))))
+        (when is-looking-at-decl-keyword
+          ;; Found the var/let/const declaration of which the initial line was a
+          ;; continuation of. The correct indentation is therefore the relative
+          ;; offset of the word following the var keyword.
+          (let ((bol-pos (point)))
+            (re-search-forward decl-re)
+            (- (point) bol-pos)))))))
+
 (defun typescript--proper-indentation (parse-status)
   "Return the proper indentation for the current line."
   (save-excursion
@@ -2130,6 +2150,7 @@ moved on success."
           ((typescript--ctrl-statement-indentation))
           ((eq (char-after) ?#) 0)
           ((save-excursion (typescript--beginning-of-macro)) 4)
+          ((typescript--multiline-declaration-indentation))
           ((nth 1 parse-status)
            (let ((same-indent-p (looking-at
                                  "[]})]\\|\\_<case\\_>\\|\\_<default\\_>"))
