@@ -284,22 +284,33 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
                     '(("=" . nil) ("/foo/" . font-lock-string-face)
                       ("(" . nil) ("/bar/" . font-lock-string-face)
                       ("," . nil) ("/baz/" . font-lock-string-face)
-                      (":" . nil) ("/buzz/" . font-lock-string-face)))))
+                      (":" . nil) ("/buzz/" . font-lock-string-face))))
+  ;; Make sure that escaped forward slashes are handled too.
+  (font-lock-test "var a = /flip\\/flop/;"
+                  '(("=" . nil)
+                    (("/flip" "\\\\" "/" "flop/") . font-lock-string-face)
+                    (";" . nil)))
+  ;; A sequence of two forward slashes is never a regex, so there is
+  ;; no such thing as an \"empty regex\" when we use the forward slash
+  ;; notation.
+  (font-lock-test "=//g something // comment"
+                  '(("g something" . font-lock-comment-face))))
 
 (ert-deftest font-lock/text-after-trailing-regexp-delim-should-not-be-fontified ()
   "Text after trailing regular expression delimiter should not be fontified."
   (test-with-temp-buffer
-      "=/foo/g something // comment"
-    (should (eq (get-face-at "g something") nil)))
+   "=/foo/g something // comment"
+   (should (eq (get-face-at "g something") nil)))
   (test-with-temp-buffer
-      "=/foo\\bar/g something // comment"
-    (should (eq (get-face-at "g something") nil)))
+   "=/foo\\bar/g something // comment"
+   (should (eq (get-face-at "g something") nil)))
   (test-with-temp-buffer
-      "=/foo\\\\bar/g something // comment"
-    (should (eq (get-face-at "g something") nil)))
+   "=/foo\\\\bar/g something // comment"
+   (should (eq (get-face-at "g something") nil)))
   (test-with-temp-buffer
-      "=/foo\\\\/g something // comment"
-    (should (eq (get-face-at "g something") nil))))
+   "=/foo\\\\/g something // comment"
+   (should (eq (get-face-at "g something") nil))))
+
 
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
