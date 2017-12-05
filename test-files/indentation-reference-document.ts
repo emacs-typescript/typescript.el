@@ -252,6 +252,12 @@ function moo(x: any,
     return null;
 }
 
+// No parens around return type.
+function moo2(x: any,
+              f: string): (a: number) => void {
+    return null;
+}
+
 // Parens around return type.
 function foo(x: any,
              f: string): ((a: number) => void) {

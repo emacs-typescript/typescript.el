@@ -2060,10 +2060,17 @@ moved on success."
             (loop named search-loop
                   do (progn
                        (cond
-                        ;; Looking at the arrow of an arrow function:
+                        ;; Looking at the arrow of a function definition:
                         ;; move back over the arrow.
                         ((looking-back "=>" (- (point) 2))
-                         (backward-char 2))
+                         (backward-char 2)
+                         (typescript--backward-syntactic-ws)
+                         ;; Immediately handle a parenthesized list of arguments. Otherwise, the
+                         ;; algorithm here will go astray.
+                         (when (eq (char-before) ?\))
+                           (condition-case nil
+                               (backward-sexp)
+                             (scan-error nil))))
                         ;; Looking at the end of the parameters list
                         ;; of a generic: move back over the list.
                         ((eq (char-before) ?>)
