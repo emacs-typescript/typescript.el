@@ -2107,6 +2107,8 @@ moved on success."
                               (eq before ?.)
                               ;; Typeguard (eg. foo is SomeClass)
                               (looking-back "is" (- (point) 2))
+                              ;; Array shorthand
+                              (eq before ?\])
                               ;; This is also dealing with dotted names. This may come
                               ;; into play if a jump back moves over an entire dotted
                               ;; name at once.

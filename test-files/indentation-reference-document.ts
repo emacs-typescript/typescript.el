@@ -299,6 +299,24 @@ function bif2(a: number,
     return 1;
 }
 
+// Array shorthand.
+function bif3(a: number,
+              b: number): number[] {
+    return [1];
+}
+
+// Array shorthand in union.
+function bif4(a: number,
+              b: number): number[] | number {
+    return [1];
+}
+
+// Array shorthand in union, with spaces.
+function bif5(a: number,
+              b: number): number[   ] | number {
+    return [1];
+}
+
 // Comment where the return type would appear.
 function gogo(a: number,
               b: number) /* foo */ {
