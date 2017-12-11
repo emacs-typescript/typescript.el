@@ -2058,69 +2058,47 @@ moved on success."
           ;; This handles the case of a function with return type annotation.
           (save-excursion
             (loop named search-loop
-                  do (progn
-                       (cond
-                        ;; Looking at the arrow of a function definition:
-                        ;; move back over the arrow.
-                        ((looking-back "=>" (- (point) 2))
-                         (backward-char 2)
-                         (typescript--backward-syntactic-ws)
-                         ;; Immediately handle a parenthesized list of arguments. Otherwise, the
-                         ;; algorithm here will go astray.
-                         (when (eq (char-before) ?\))
-                           (condition-case nil
-                               (backward-sexp)
-                             (scan-error nil))))
-                        ;; Looking at the end of the parameters list
-                        ;; of a generic: move back over the list.
-                        ((eq (char-before) ?>)
-                         (backward-char)
-                         (typescript--backward-over-generic-parameter-list))
-                        ;; Looking at a union: skip over the character.
-                        ((eq (char-before) ?|)
-                         (backward-char))
-                        ;; General case: we just move back over the current sexp.
-                        (t
-                         (condition-case nil
-                             (backward-sexp)
-                           (scan-error nil))))
-                       (typescript--backward-syntactic-ws)
-                       (let ((before (char-before)))
-                         ;; Check whether we are at "):".
-                         (when (and (eq before ?\:)
-                                    (progn
-                                      (backward-char)
-                                      (skip-syntax-backward " ")
-                                      (eq (char-before) ?\))))
-                           ;; Success! This the end of the parameter list.
-                           (cl-return-from search-loop (point)))
-                         ;; All the following cases are constructs that are allowed to
-                         ;; appear between the opening brace of a function and the
-                         ;; end of a parameter list.
-                         (unless
-                             (or
-                              ;; End of a generic.
-                              (eq before ?>)
-                              ;; Union of types
-                              (eq before ?|)
-                              ;; Dotted names
-                              (eq before ?.)
-                              ;; Typeguard (eg. foo is SomeClass)
-                              (looking-back "is" (- (point) 2))
-                              ;; Array shorthand
-                              (eq before ?\])
-                              ;; This is also dealing with dotted names. This may come
-                              ;; into play if a jump back moves over an entire dotted
-                              ;; name at once.
-                              ;;
-                              ;; The earlier test for dotted names comes into play if the
-                              ;; logic moves over one part of a dotted name at a time (which
-                              ;; is what `backward-sexp` normally does).
-                              (looking-back typescript--dotted-name-re nil)
-                             )
-                           ;; We did not encounter a valid construct, so
-                           ;; the search is unsuccessful.
-                           (cl-return-from search-loop nil))))))
+                  do
+                  (typescript--backward-syntactic-ws)
+                  ;; Check whether we are at "):".
+                  (when (and (eq (char-before) ?\:)
+                             (progn
+                               (backward-char)
+                               (skip-syntax-backward " ")
+                               (eq (char-before) ?\))))
+                    ;; Success! This the end of the parameter list.
+                    (cl-return-from search-loop (point)))
+                  ;; If we recognize a structure that belongs in a return type annotation,
+                  ;; skip back over it, or fail.
+                  (cond
+                   ;; Arrow of a function definition, or typeguard (eg. foo is SomeClass)
+                   ((looking-back "=>\\|is" (- (point) 2))
+                    (backward-char 2))
+                   ;; End of the parameters list of a generic.
+                   ((eq (char-before) ?>)
+                    (backward-char)
+                    (typescript--backward-over-generic-parameter-list))
+                   ;; Union of types, or a dot in a dotted name.
+                   ((memq (char-before) '(?| ?.))
+                    (backward-char))
+                   ((or
+                     ;; End-delimiter of a delimited construct, for constructs
+                     ;; not handled above.
+                     (memq (char-before) '(?\) ?} ?\" ?\]))
+                     ;; This is also dealing with dotted names. This may come
+                     ;; into play if a jump back moves over an entire dotted
+                     ;; name at once.
+                     ;;
+                     ;; The earlier test for dotted names comes into play if the
+                     ;; logic moves over one part of a dotted name at a time (which
+                     ;; is what `backward-sexp` normally does).
+                     (looking-back typescript--dotted-name-re nil))
+                    (condition-case nil
+                        (backward-sexp)
+                      (scan-error nil)))
+                   ;; Otherwise, we failed to find a location.
+                   (t
+                    (cl-return-from search-loop nil)))))
           ;; This handles the case of a function without return type annotation.
           (progn
             (typescript--backward-syntactic-ws)
