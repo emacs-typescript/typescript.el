@@ -2453,27 +2453,22 @@ Key bindings:
   :group 'typescript
   :syntax-table typescript-mode-syntax-table
 
-  (set (make-local-variable 'indent-line-function) 'typescript-indent-line)
-  (set (make-local-variable 'beginning-of-defun-function)
-       'typescript-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function)
-       'typescript-end-of-defun)
-
-  (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
-  (set (make-local-variable 'font-lock-defaults)
+  (setq-local indent-line-function 'typescript-indent-line)
+  (setq-local beginning-of-defun-function 'typescript-beginning-of-defun)
+  (setq-local end-of-defun-function 'typescript-end-of-defun)
+  (setq-local open-paren-in-column-0-is-defun-start nil)
+  (setq-local font-lock-defaults
        (list typescript--font-lock-keywords
 	     nil nil nil nil
 	     '(font-lock-syntactic-keywords
                . typescript-font-lock-syntactic-keywords)))
-
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local parse-sexp-lookup-properties t)
 
   ;; Comments
-  (setq comment-start "// ")
-  (setq comment-end "")
-  (set (make-local-variable 'fill-paragraph-function)
-       'typescript-c-fill-paragraph)
+  (setq-local comment-start "// ")
+  (setq-local comment-end "")
+  (setq-local fill-paragraph-function 'typescript-c-fill-paragraph)
 
   ;; Parse cache
   (add-hook 'before-change-functions #'typescript--flush-caches t t)
@@ -2503,8 +2498,7 @@ Key bindings:
     (make-local-variable 'adaptive-fill-regexp)
     (c-setup-paragraph-variables))
 
-  (set (make-local-variable 'syntax-begin-function)
-       #'typescript--syntax-begin-function))
+  (setq-local syntax-begin-function #'typescript--syntax-begin-function))
 
 ;; Set our custom predicate for flyspell prog mode
 (put 'typescript-mode 'flyspell-mode-predicate
