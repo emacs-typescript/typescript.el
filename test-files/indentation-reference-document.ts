@@ -487,3 +487,7 @@ function foo12(): void {
         a: {},
     });
 }
+
+const a =
+    1; // Blah
+const b = 2;

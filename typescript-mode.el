@@ -880,7 +880,20 @@ This function invokes `re-search-backward' but treats the buffer
 as if strings, preprocessor macros, and comments have been
 removed.
 
-If invoked while inside a macro, treat the macro as normal text."
+If invoked while inside a macro, treat the macro as normal text.
+
+IMPORTANT NOTE: searching for \"\\n\" with this function to find
+line breaks will generally not work, because the final newline of
+a one-line comment is considered to be part of the comment and
+will be skipped.  Take the following code:
+
+  let a = 1;
+  let b = 2; // Foo
+  let c = 3;
+
+If the point is in the last line, searching back for \"\\n\" will
+skip over the line with \"let b\". The newline found will be the
+one at the end of the line with \"let a\"."
   (let ((saved-point (point))
         (search-expr
          (cond ((null count)
@@ -1947,9 +1960,8 @@ See `font-lock-keywords'.")
      ;; "continuation".
      (not (looking-at "\\.\\.\\."))
      (or (typescript--looking-at-operator-p)
-         (and (typescript--re-search-backward "\n" nil t)
-              (progn
-                (skip-chars-backward " \t")
+         (and (progn
+                (typescript--backward-syntactic-ws)
                 (or (bobp) (backward-char))
                 (and (> (point) (point-min))
                      (save-excursion (backward-char) (not (looking-at "[/*]/")))
