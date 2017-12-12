@@ -197,6 +197,9 @@ LOCATION can be either a single location, or list of locations,
 that are all expected to have the same face."
   (test-with-temp-buffer
    contents
+   ;; Make sure our propertize function has been applied to the whole
+   ;; buffer.
+   (syntax-propertize (point-max))
    (dolist (spec expected)
      (if (listp (car spec))
          (dolist (source (car spec))
@@ -289,6 +292,18 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
   (font-lock-test "var a = /flip\\/flop/;"
                   '(("=" . nil)
                     (("/flip" "\\\\" "/" "flop/") . font-lock-string-face)
+                    (";" . nil)))
+  ;; Make sure a forward slash in a character class is handled fine.
+  ;; It must not terminate the regular expression.
+  (font-lock-test "var a = /[/]/;"
+                  '(("=" . nil)
+                    (("/" "\\[/" "\\]/") . font-lock-string-face)
+                    (";" . nil)))
+  ;; Make sure an open bracket in a character class does not
+  ;; throw off fontification.
+  (font-lock-test "var a = /[[]/;"
+                  '(("=" . nil)
+                    (("/" "\\[\\[\\]" "/") . font-lock-string-face)
                     (";" . nil)))
   ;; A sequence of two forward slashes is never a regex, so there is
   ;; no such thing as an \"empty regex\" when we use the forward slash
