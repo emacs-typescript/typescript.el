@@ -1880,21 +1880,73 @@ This performs fontification according to `typescript--class-styles'."
                                    typescript--font-lock-keywords-3)
   "Font lock keywords for `typescript-mode'.  See `font-lock-keywords'.")
 
-;; XXX: typescript can continue a regexp literal across lines so long
-;; as the newline is escaped with \. Account for that in the regexp
-;; below.
-(defconst typescript--regexp-literal
-  "[=(,:]\\(?:\\s-\\|\n\\)*\\(/\\)\\(?:\\\\.\\|[^/]\\)+\\(/\\)"
-  "Regexp matching a typescript regular expression literal.
-Match groups 1 and 2 are the characters forming the beginning and
-end of the literal.")
+;;; Propertize
 
-;; we want to match regular expressions only at the beginning of
-;; expressions
-(defconst typescript-font-lock-syntactic-keywords
-  `((,typescript--regexp-literal (1 "|") (2 "|")))
-  "Syntactic font lock keywords matching regexps in typescript.
-See `font-lock-keywords'.")
+;;
+;; The propertize code was adapted from:
+;; https://github.com/emacs-mirror/emacs/blob/489d6466372f488adc53897435fff290394b62f7/lisp/progmodes/js.el
+;;
+
+(defconst typescript--syntax-propertize-regexp-regexp
+  (rx
+   ;; Start of regexp.
+   "/"
+   (0+ (or
+        ;; Match characters outside of a character class.
+        (not (any ?\[ ?/ ?\\))
+        ;; Match backslash quoted characters.
+        (and "\\" not-newline)
+        ;; Match character class.
+        (and
+         "["
+         (0+ (or
+              (not (any ?\] ?\\))
+              (and "\\" not-newline)))
+         "]")))
+   (group (zero-or-one "/")))
+  "Regular expression matching a JavaScript regexp literal.")
+
+(defun typescript-syntax-propertize-regexp (end)
+  (let ((ppss (syntax-ppss)))
+    (when (eq (nth 3 ppss) ?/)
+      ;; A /.../ regexp.
+      (goto-char (nth 8 ppss))
+      (when (looking-at typescript--syntax-propertize-regexp-regexp)
+        ;; Don't touch text after END.
+        (when (> end (match-end 1))
+          (setq end (match-end 1)))
+        (put-text-property (match-beginning 1) end
+                           'syntax-table (string-to-syntax "\"/"))
+        (goto-char end)))))
+
+(defun typescript-syntax-propertize (start end)
+  ;; JavaScript allows immediate regular expression objects, written /.../.
+  (goto-char start)
+  (typescript-syntax-propertize-regexp end)
+  (funcall
+   (syntax-propertize-rules
+    ;; Distinguish /-division from /-regexp chars (and from /-comment-starter).
+    ;; FIXME: Allow regexps after infix ops like + ...
+    ;; https://developer.mozilla.org/en/JavaScript/Reference/Operators
+    ;; We can probably just add +, -, <, >, %, ^, ~, ?, : at which
+    ;; point I think only * and / would be missing which could also be added,
+    ;; but need care to avoid affecting the // and */ comment markers.
+    ("\\(?:^\\|[=([{,:;|&!]\\|\\_<return\\_>\\)\\(?:[ \t]\\)*\\(/\\)[^/*]"
+     (1 (ignore
+	 (forward-char -1)
+         (when (or (not (memq (char-after (match-beginning 0)) '(?\s ?\t)))
+                   ;; If the / is at the beginning of line, we have to check
+                   ;; the end of the previous text.
+                   (save-excursion
+                     (goto-char (match-beginning 0))
+                     (forward-comment (- (point)))
+                     (memq (char-before)
+                           (eval-when-compile (append "=({[,:;" '(nil))))))
+           (put-text-property (match-beginning 1) (match-end 1)
+                              'syntax-table (string-to-syntax "\"/"))
+           (typescript-syntax-propertize-regexp end)))))
+    ("\\`\\(#\\)!" (1 "< b")))
+   (point) end))
 
 ;;; Indentation
 
@@ -2457,11 +2509,8 @@ Key bindings:
   (setq-local beginning-of-defun-function 'typescript-beginning-of-defun)
   (setq-local end-of-defun-function 'typescript-end-of-defun)
   (setq-local open-paren-in-column-0-is-defun-start nil)
-  (setq-local font-lock-defaults
-       (list typescript--font-lock-keywords
-	     nil nil nil nil
-	     '(font-lock-syntactic-keywords
-               . typescript-font-lock-syntactic-keywords)))
+  (setq-local font-lock-defaults (list typescript--font-lock-keywords))
+  (setq-local syntax-propertize-function #'typescript-syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)
   (setq-local parse-sexp-lookup-properties t)
 
