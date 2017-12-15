@@ -1921,8 +1921,6 @@ This performs fontification according to `typescript--class-styles'."
 
 (defun typescript-syntax-propertize (start end)
   ;; JavaScript allows immediate regular expression objects, written /.../.
-  (goto-char start)
-  (typescript-syntax-propertize-regexp end)
   (funcall
    (syntax-propertize-rules
     ;; Distinguish /-division from /-regexp chars (and from /-comment-starter).
@@ -1945,8 +1943,9 @@ This performs fontification according to `typescript--class-styles'."
            (put-text-property (match-beginning 1) (match-end 1)
                               'syntax-table (string-to-syntax "\"/"))
            (typescript-syntax-propertize-regexp end)))))
+    ;; Hash-bang at beginning of buffer.
     ("\\`\\(#\\)!" (1 "< b")))
-   (point) end))
+   start end))
 
 ;;; Indentation
 
