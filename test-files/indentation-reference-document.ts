@@ -488,6 +488,19 @@ function foo12(): void {
     });
 }
 
+// Number literals in the return type annotation.
+function foo13(something: string,
+               somethingElse: string): 0b1 | 0 | -1 | 0o2 | 0x3f {
+    return 0;
+}
+
+// No spaces between numbers and type union symbols. (Also changed the
+// notation to uppercase where possible.)
+function foo14(something: string,
+               somethingElse: string): 0B1|0|-1|0O2|0X3F {
+    return 0;
+}
+
 const a =
     1; // Blah
 const b = 2;
