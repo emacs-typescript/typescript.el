@@ -1963,6 +1963,21 @@ This performs fontification according to `typescript--class-styles'."
   (concat "[-+*/%<>=&^|?:.]\\([^-+*/]\\|$\\)\\|" typescript--indent-keyword-re)
   "Regexp matching operators that affect indentation of continued expressions.")
 
+;;
+;; We purposely do not allow the plus symbol as a prefix here, as this
+;; regex is used to check number literal in type annotations, and TS
+;; does not allow to use a plus symbol to prefix numbers there: you
+;; can use 1, but not +1 in a type annotation.
+;;
+;; This is meant to match NaN, floats, decimals, the two infinities
+;; and numbers recorded in binary, octal and hex.
+;;
+;; This regular expression was derived from:
+;; https://stackoverflow.com/a/30987109/
+;;
+(defconst typescript--number-literal-re
+  "\\(?:NaN\\|-?\\(?:0[Bb][01]+\\|0[Oo][0-7]+\\|0[Xx][0-9a-fA-F]+\\|Infinity\\|\\(?:[[:digit:]]*\\.[[:digit:]]+\\|[[:digit:]]+\\)\\(?:[Ee][+-]?[[:digit:]]+\\)?\\)\\)"
+  "Regexp that matches number literals.")
 
 (defun typescript--looking-at-operator-p ()
   "Return non-nil if point is on a typescript operator, other than a comma."
@@ -2159,6 +2174,11 @@ moved on success."
                     (condition-case nil
                         (backward-sexp)
                       (scan-error nil)))
+                   ((looking-back typescript--number-literal-re
+                                  ;; We limit the search back to the previous space or end of line (if possible)
+                                  ;; to prevent the search from going over the whole buffer.
+                                  (save-excursion (re-search-backward "\\(?:\\s-\\|\n\\)" nil t)) t)
+                    (goto-char (match-beginning 0)))
                    ;; Otherwise, we failed to find a location.
                    (t
                     (cl-return-from search-loop nil)))))
