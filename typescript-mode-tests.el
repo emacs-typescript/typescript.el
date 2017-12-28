@@ -99,6 +99,23 @@ a severity set to WARNING, no rule name."
     (should (string-equal (nth 4 matches) "1"))
     (should (string-equal (nth 5 matches) "83"))))
 
+(ert-deftest typescript--number-literal-re-matches-numbers ()
+  "`typescript--number-literal-re' matches numbers."
+  (dolist (to-match '("NaN" "Infinity" "-Infinity" "-1" "1" "0.1" ".1" "-.1" "8e23"
+                      "9E-2" ".1e23" "0b1" "-0B1" "0o7" "-0O13" "0xaf" "-0XAF"))
+    (should (string-match typescript--number-literal-re to-match))
+    ;; The regular expression does not begin with ^ and end with $ so
+    ;; we need to check ourselves that the whole string is matched.
+    (should (string-equal (match-string 0 to-match) to-match))))
+
+(ert-deftest typescript--number-literal-re-does-not-match-non-numbers ()
+  "`typescript--number-literal-re' does not match non-numbers."
+  (dolist (to-match '("NaNa" "Inf" "1." "." "0xPQ" "e" "2.3e2.4"))
+    ;; For the same reason as for the positive test above, what we want is either no match
+    ;; or a match that fails to match the whole string.
+    (should-not (and (string-match typescript--number-literal-re to-match)
+                     (string-equal (match-string 0 to-match) to-match)))))
+
 (ert-deftest correctly-indents-lines-with-wide-chars ()
   "Otsuka Ai and other multi-char users should be a happy to write typescript."
 
