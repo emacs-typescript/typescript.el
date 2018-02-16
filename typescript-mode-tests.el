@@ -29,6 +29,29 @@
 
     (kill-buffer buffer)))
 
+(ert-deftest switch-case-indent-default ()
+  (let* ((buffer (find-file "test-files/switch-case-indent-default.ts")))
+    ;; double ensure mode is active
+    (typescript-mode)
+    (setq typescript-switch-indent-offset 0)
+    (let ((test-reference (typescript-test-get-doc)))
+      (typescript-test-indent-all)
+      (should (string-equal test-reference
+                            (typescript-test-get-doc))))
+    (kill-buffer buffer)))
+
+(ert-deftest switch-case-indent-custom ()
+  (let* ((buffer (find-file "test-files/switch-case-indent.ts")))
+    ;; double ensure mode is active
+    (typescript-mode)
+    (setq typescript-switch-indent-offset typescript-indent-level)
+    (let ((test-reference (typescript-test-get-doc)))
+      (typescript-test-indent-all)
+      (should (string-equal test-reference
+                            (typescript-test-get-doc))))
+    (setq typescript-switch-indent-offset 0)
+    (kill-buffer buffer)))
+
 (defun get-all-matched-strings (to-match)
   (let (result)
     (dotimes (x (/ (length (match-data)) 2))
