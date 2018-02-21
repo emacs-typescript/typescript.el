@@ -21,25 +21,10 @@ namespace ts.server {
 
     // functions indent.
     function getGlobalTypingsCacheLocation() {
-        // We know switch/case is indented incorrectly.
-        // TODO: FIX!
-
-        // switch (process.platform) {
-        //     case "win32": {
-        //         const basePath = process.env.LOCALAPPDATA ||
-        //             process.env.APPDATA;
-        //         return combinePaths(normalizeSlashes(basePath), "Microsoft/TypeScript");
-        //     }
-        //     case "darwin":
-        //     case "linux":
-        //     case "android": {
-        //         const cacheLocation = getNonWindowsCacheLocation(process.platform === "darwin");
-        //         return combinePaths(cacheLocation, "typescript");
-        //     }
-        //     default:
-        //         Debug.fail(`unsupported platform '${process.platform}'`);
-        //         return;
-        // }
+        const obj = {
+            case: 1,
+            default: 2
+        };
     }
 
     // interfaces and classes indent.
