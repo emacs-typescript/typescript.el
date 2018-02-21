@@ -594,7 +594,7 @@ The value must be no less than minus `typescript-indent-level'."
 (defcustom typescript-indent-switch-clauses t
   "Enable indenting of switch case and default clauses to
 replicate tsserver behaviour. Indent level is taken to be
-`typestrict-indent-level'."
+`typescript-indent-level'."
   :type 'boolean
   :group 'typescript)
 
@@ -2211,7 +2211,7 @@ moved on success."
           ((save-excursion (typescript--beginning-of-macro)) 4)
           ((nth 1 parse-status)
            (let ((same-indent-p (looking-at "[]})]"))
-                 (switch-keyword-p (looking-at "default\\_>\\|case\\_>[^:]"))
+                 (switch-keyword-p (looking-at "\\_<default\\_>\\|\\_<case\\_>[^:]"))
                  (continued-expr-p (typescript--continued-expression-p)))
              (goto-char (nth 1 parse-status))
              (if (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)")
