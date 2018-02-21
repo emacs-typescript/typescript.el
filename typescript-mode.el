@@ -591,11 +591,11 @@ The value must be no less than minus `typescript-indent-level'."
   :safe 'integerp
   :group 'typescript)
 
-(defcustom typescript-switch-indent-offset 0
-  "Number of additional spaces for indenting the contents of a switch block.
-The value must be no less than minus `typescript-indent-level'."
-  :type 'integer
-  :safe 'integerp
+(defcustom typescript-indent-switch-clauses t
+  "Enable indenting of switch case and default clauses to
+replicate tsserver behaviour. Indent level is taken to be
+`typestrict-indent-level'."
+  :type 'boolean
   :group 'typescript)
 
 (defcustom typescript-auto-indent-flag t
@@ -2234,8 +2234,8 @@ moved on success."
                                      typescript-expr-indent-offset))
                                  (t
                                   (+ (current-column) typescript-indent-level)))))
-                     (if in-switch-p
-                         (+ indent typescript-switch-indent-offset)
+                     (if (and in-switch-p typescript-indent-switch-clauses)
+                         (+ indent typescript-indent-level)
                        indent)))
                (unless same-indent-p
                  (forward-char)
