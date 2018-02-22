@@ -18,15 +18,37 @@
   (untabify (point-min) (point-max)))
 
 (ert-deftest indentation-reference-document-is-reflowed-correctly ()
-  (let* ((buffer (find-file "test-files/indentation-reference-document.ts")))
+  (let ((buffer (find-file "test-files/indentation-reference-document.ts")))
     ;; double ensure mode is active
     (typescript-mode)
 
     (let ((test-reference (typescript-test-get-doc)))
       (typescript-test-indent-all)
       (should (string-equal test-reference
-                            (typescript-test-get-doc))))
+                            (typescript-test-get-doc)))
+      (let ((typescript-indent-switch-clauses nil))
+        (typescript-test-indent-all)
+        (should (string-equal test-reference
+                              (typescript-test-get-doc)))))
+    (kill-buffer buffer)))
 
+(ert-deftest switch-case-indent-default ()
+  (let ((buffer (find-file "test-files/switch-case-indent-default.ts")))
+    (typescript-mode)
+    (let ((test-reference (typescript-test-get-doc)))
+      (typescript-test-indent-all)
+      (should (string-equal test-reference
+                            (typescript-test-get-doc))))
+    (kill-buffer buffer)))
+
+(ert-deftest switch-case-indent-disabled ()
+  (let ((buffer (find-file "test-files/switch-case-indent-disabled.ts"))
+        (typescript-indent-switch-clauses nil))
+    (typescript-mode)
+    (let ((test-reference (typescript-test-get-doc)))
+      (typescript-test-indent-all)
+      (should (string-equal test-reference
+                            (typescript-test-get-doc))))
     (kill-buffer buffer)))
 
 (defun get-all-matched-strings (to-match)

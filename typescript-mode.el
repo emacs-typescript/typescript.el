@@ -591,6 +591,13 @@ The value must be no less than minus `typescript-indent-level'."
   :safe 'integerp
   :group 'typescript)
 
+(defcustom typescript-indent-switch-clauses t
+  "Enable indenting of switch case and default clauses to
+replicate tsserver behaviour. Indent level is taken to be
+`typescript-indent-level'."
+  :type 'boolean
+  :group 'typescript)
+
 (defcustom typescript-auto-indent-flag t
   "Whether to automatically indent when typing punctuation characters.
 If non-nil, the characters {}();,: also indent the current line
@@ -2203,8 +2210,8 @@ moved on success."
           ((eq (char-after) ?#) 0)
           ((save-excursion (typescript--beginning-of-macro)) 4)
           ((nth 1 parse-status)
-           (let ((same-indent-p (looking-at
-                                 "[]})]\\|\\_<case\\_>\\|\\_<default\\_>"))
+           (let ((same-indent-p (looking-at "[]})]"))
+                 (switch-keyword-p (looking-at "\\_<default\\_>\\|\\_<case\\_>[^:]"))
                  (continued-expr-p (typescript--continued-expression-p)))
              (goto-char (nth 1 parse-status))
              (if (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)")
@@ -2214,13 +2221,22 @@ moved on success."
                              (eq (char-before) ?\)))
                      (backward-list))
                    (back-to-indentation)
-                   (cond (same-indent-p
-                          (current-column))
-                         (continued-expr-p
-                          (+ (current-column) (* 2 typescript-indent-level)
-                             typescript-expr-indent-offset))
-                         (t
-                          (+ (current-column) typescript-indent-level))))
+                   (let* ((in-switch-p (unless same-indent-p
+                                         (looking-at "\\_<switch\\_>")))
+                          (same-indent-p (or same-indent-p
+                                             (and switch-keyword-p
+                                                  in-switch-p)))
+                          (indent
+                           (cond (same-indent-p
+                                  (current-column))
+                                 (continued-expr-p
+                                  (+ (current-column) (* 2 typescript-indent-level)
+                                     typescript-expr-indent-offset))
+                                 (t
+                                  (+ (current-column) typescript-indent-level)))))
+                     (if (and in-switch-p typescript-indent-switch-clauses)
+                         (+ indent typescript-indent-level)
+                       indent)))
                (unless same-indent-p
                  (forward-char)
                  (skip-chars-forward " \t"))
