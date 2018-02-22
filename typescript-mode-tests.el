@@ -25,8 +25,11 @@
     (let ((test-reference (typescript-test-get-doc)))
       (typescript-test-indent-all)
       (should (string-equal test-reference
-                            (typescript-test-get-doc))))
-
+                            (typescript-test-get-doc)))
+      (let ((typescript-indent-switch-clauses nil))
+        (typescript-test-indent-all)
+        (should (string-equal test-reference
+                              (typescript-test-get-doc)))))
     (kill-buffer buffer)))
 
 (ert-deftest switch-case-indent-default ()
