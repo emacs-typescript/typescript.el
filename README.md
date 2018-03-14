@@ -17,7 +17,7 @@ Output from `tsc` and `tslint` is also handled seamlessly through
 favourite approach or framework, or from MELPA and MELPA Stable as a
 package.
 
-To install typescript.el simply type `M-x install-package<RET>typescript-mode<RET>`.
+To install typescript.el simply type `M-x package-install<RET>typescript-mode<RET>`.
 
 # Customization
 
