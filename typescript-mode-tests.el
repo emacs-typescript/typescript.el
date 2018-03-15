@@ -350,6 +350,28 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
   (font-lock-test "=//g something // comment"
                   '(("g something" . font-lock-comment-face))))
 
+(ert-deftest font-lock/yield ()
+  "`yield' and `yield*' should be fontified as keywords."
+  (font-lock-test
+   "function* gen(x0: xty0, y0: yty0): ret0 {
+    yield 123;
+    yield* subIter;
+}"
+   '(("yield 123" . font-lock-keyword-face)
+     ("yield\\*" . font-lock-keyword-face)
+     ("\\* subIter" . font-lock-keyword-face))))
+
+(ert-deftest font-lock/yielder ()
+  "`yielder' should not be fontified as a keyword."
+  (font-lock-test
+   "function* gen(x0: xty0, y0: yty0): ret0 {
+    const yielder = 123;
+    yield abc;
+    return yielder;
+}"
+   '(("yielder =" . font-lock-variable-name-face)
+     ("yielder;" . nil))))
+
 (ert-deftest font-lock/text-after-trailing-regexp-delim-should-not-be-fontified ()
   "Text after trailing regular expression delimiter should not be fontified."
   (test-with-temp-buffer

@@ -290,7 +290,7 @@ Match group 1 is the name of the macro.")
      "private" "protected" "public" "readonly" "return" "set" "static" "string"
      "super" "switch"  "this" "throw" "true"
      "try" "type" "typeof" "var" "void"
-     "while" ))
+     "while"))                  ; yield is handled separately
   "Regexp matching any typescript keyword.")
 
 (defconst typescript--basic-type-re
@@ -318,6 +318,7 @@ Match group 1 is the name of the macro.")
                 (list "\\_<for\\_>"
                       "\\s-+\\(each\\)\\_>" nil nil
                       (list 1 'font-lock-keyword-face))
+                (cons "\\_<yield\\(\\*\\|\\_>\\)" 'font-lock-keyword-face)
                 (cons typescript--basic-type-re font-lock-type-face)
                 (cons typescript--constant-re font-lock-constant-face)))
   "Level two font lock keywords for `typescript-mode'.")
