@@ -2180,7 +2180,11 @@ moved on success."
                      ;; The earlier test for dotted names comes into play if the
                      ;; logic moves over one part of a dotted name at a time (which
                      ;; is what `backward-sexp` normally does).
-                     (looking-back typescript--dotted-name-re nil))
+                     (and (looking-back typescript--dotted-name-re nil)
+                          ;; We don't want the loop to walk over constructs like switch (...) or for (...), etc.
+                          (not (save-excursion
+                                 (backward-word)
+                                 (looking-at "\\_<\\(switch\\|if\\|while\\|until\\|for\\)\\_>\\(?:\\s-\\|\n\\)*(")))))
                     (condition-case nil
                         (backward-sexp)
                       (scan-error nil)))

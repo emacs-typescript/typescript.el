@@ -3,7 +3,15 @@ function indentTest(): any {
         case: 1,
         default: 2
     };
+
+    // This function was specifically added to test for a reversion in
+    // the code that indents switch statements.
+    function turnip(): void {
+    }
+
     switch (process.platform) {
+        case "moo":
+            break;
         case "win32": {
             const basePath = process.env.LOCALAPPDATA ||
                 process.env.APPDATA;
