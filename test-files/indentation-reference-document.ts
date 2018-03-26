@@ -489,3 +489,9 @@ function foo14(something: string,
 const a =
     1; // Blah
 const b = 2;
+
+function blipblop(): void {
+    {
+        const q = 1;
+    }
+}

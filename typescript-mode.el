@@ -2217,14 +2217,28 @@ moved on success."
           ((nth 1 parse-status)
            (let ((same-indent-p (looking-at "[]})]"))
                  (switch-keyword-p (looking-at "\\_<default\\_>\\|\\_<case\\_>[^:]"))
-                 (continued-expr-p (typescript--continued-expression-p)))
-             (goto-char (nth 1 parse-status))
+                 (continued-expr-p (typescript--continued-expression-p))
+                 (list-start (nth 1 parse-status)))
+             (goto-char list-start)
              (if (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)")
                  (progn
                    (skip-syntax-backward " ")
-                   (when (or (typescript--backward-to-parameter-list)
-                             (eq (char-before) ?\)))
+                   (cond
+                    ((or (typescript--backward-to-parameter-list)
+                         (eq (char-before) ?\)))
+                     ;; Take the curly brace as marking off the body of a function.
+                     ;; In that case, we want the code that follows to see the indentation
+                     ;; that was in effect at the beginning of the function declaration, and thus
+                     ;; we want to move back over the list of function parameters.
                      (backward-list))
+                    ((looking-back "," nil)
+                     ;; If we get here, we have a comma, spaces and an opening curly brace. (And
+                     ;; (point) is just after the comma.) We don't want to move from the current position
+                     ;; so that object literals in parameter lists are properly indented.
+                     nil)
+                    (t
+                     ;; In all other cases, we don't want to move from the curly brace.
+                     (goto-char list-start)))
                    (back-to-indentation)
                    (let* ((in-switch-p (unless same-indent-p
                                          (looking-at "\\_<switch\\_>")))
