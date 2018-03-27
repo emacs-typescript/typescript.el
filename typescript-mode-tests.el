@@ -8,6 +8,7 @@
 
 (require 'ert)
 (require 'typescript-mode)
+(require 'cl)
 
 (defun typescript-test-get-doc ()
   (buffer-substring-no-properties (point-min) (point-max)))
@@ -211,8 +212,18 @@ a severity set to WARNING, no rule name."
   `(with-temp-buffer
      (insert ,content)
      (typescript-mode)
-     (font-lock-fontify-buffer)
      (goto-char (point-min))
+     ;; We need this so that tests that simulate user actions operate on the right buffer.
+     (switch-to-buffer (current-buffer))
+     ,@body))
+
+(defmacro test-with-fontified-buffer (content &rest body)
+  "Fill a temporary buffer with `CONTENT' and eval `BODY' in it."
+  (declare (debug t)
+           (indent 1))
+  `(test-with-temp-buffer
+    ,content
+     (font-lock-fontify-buffer)
      ,@body))
 
 (defun get-face-at (loc)
@@ -234,7 +245,7 @@ put in the temporary buffer. `EXPECTED' is the expected
 results. It should be a list of (LOCATION . FACE) pairs, where
 LOCATION can be either a single location, or list of locations,
 that are all expected to have the same face."
-  (test-with-temp-buffer
+  (test-with-fontified-buffer
    contents
    ;; Make sure our propertize function has been applied to the whole
    ;; buffer.
@@ -263,7 +274,7 @@ documentation."
 (ert-deftest font-lock/no-documentation-in-non-documentation-comments ()
   "Documentation tags that are not in documentation comments
 should not be fontified as documentation."
-  (test-with-temp-buffer
+  (test-with-fontified-buffer
    (concat "/*\n" font-lock-contents "\n*/\n")
    (let ((loc 3))
      ;; Make sure we start with the right face.
@@ -274,7 +285,7 @@ should not be fontified as documentation."
 (ert-deftest font-lock/no-documentation-in-strings ()
   "Documentation tags that are not in strings should not be
 fontified as documentation."
-  (test-with-temp-buffer
+  (test-with-fontified-buffer
    (concat "const x = \"/**" font-lock-contents "*/\";")
    (let ((loc (search-forward "\"")))
      ;; Make sure we start with the right face.
@@ -374,16 +385,16 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
 
 (ert-deftest font-lock/text-after-trailing-regexp-delim-should-not-be-fontified ()
   "Text after trailing regular expression delimiter should not be fontified."
-  (test-with-temp-buffer
+  (test-with-fontified-buffer
    "=/foo/g something // comment"
    (should (eq (get-face-at "g something") nil)))
-  (test-with-temp-buffer
+  (test-with-fontified-buffer
    "=/foo\\bar/g something // comment"
    (should (eq (get-face-at "g something") nil)))
-  (test-with-temp-buffer
+  (test-with-fontified-buffer
    "=/foo\\\\bar/g something // comment"
    (should (eq (get-face-at "g something") nil)))
-  (test-with-temp-buffer
+  (test-with-fontified-buffer
    "=/foo\\\\/g something // comment"
    (should (eq (get-face-at "g something") nil))))
 
@@ -412,22 +423,180 @@ import... from...."
     ;; to avoid hitting keywords. Moreover, the end position of the search is important.
     ;; Flyspell puts point at the end of the word before calling the predicate. We must
     ;; replicate that behavior here.
-    (test-with-temp-buffer
+    (test-with-fontified-buffer
      "import 'a';\nimport { x } from 'b';\nconst foo = 'c';import { x }\nfrom 'd';"
      (should (not (flyspell-predicate-test "'a")))
      (should (not (flyspell-predicate-test "'b")))
      (should (flyspell-predicate-test "'c"))
      (should (not (flyspell-predicate-test "'d"))))
-    (test-with-temp-buffer
+    (test-with-fontified-buffer
      ;; This is valid TypeScript.
      "const from = 'a';"
      (should (flyspell-predicate-test "'a")))
-    (test-with-temp-buffer
+    (test-with-fontified-buffer
      ;; TypeScript does not allow a function named "import" but object
      ;; members may be named "import". So this *can* be valid
      ;; TypeScript.
      "x.import('a');"
      (should (flyspell-predicate-test "'a")))))
+
+
+(ert-deftest typescript--move-to-end-of-plain-string ()
+  "Unit tests for `typescript--move-to-end-of-plain-string'."
+  (cl-flet
+      ((should-fail ()
+                    (let ((point-before (point)))
+                      (should (not (typescript--move-to-end-of-plain-string)))
+                      (should (eq (point) point-before))))
+       (should-not-fail (expected)
+                        (let ((result (typescript--move-to-end-of-plain-string)))
+                          (should (eq result expected))
+                          (should (eq (point) expected)))))
+    ;;
+    ;; The tests below are structured as follows. For each case:
+    ;;
+    ;; 1. Move point to a new location in the buffer.
+    ;;
+    ;; 2. Check whether typescript--move-to-end-of-plain-string returns the value we expected
+    ;;    and changes (point) when successful.
+    ;;
+    ;; Cases often start with a check right away: (point) equal to
+    ;; (point-min) for those cases.
+    ;;
+    (dolist (delimiter '("'" "\""))
+      (test-with-temp-buffer
+       (replace-regexp-in-string "'" delimiter "const a = 'not terminated")
+       (should-fail)
+       (re-search-forward delimiter)
+       (should-fail))
+      (test-with-temp-buffer
+       (replace-regexp-in-string "'" delimiter "const a = 'terminated'")
+       (should-fail)
+       ;; This checks that the function works when invoked on the start delimiter of
+       ;; a terminated string.
+       (re-search-forward delimiter)
+       (should-not-fail (1- (point-max)))
+       (goto-char (point-min))
+       (re-search-forward "term")
+       (should-not-fail (1- (point-max)))
+       ;; This checks that the function works when invoked on the end delimiter of
+       ;; a terminated string.
+       (goto-char (1- (point-max)))
+       (should-not-fail (1- (point-max))))
+      (test-with-temp-buffer
+       (replace-regexp-in-string "'" delimiter "const a = 'terminated aaa';\n
+const b = 'not terminated bbb")
+       (should-fail)
+       (re-search-forward "term")
+       (should-not-fail (save-excursion (re-search-forward "aaa")))
+       (re-search-forward "const b")
+       (should-fail)
+       (re-search-forward "not terminated")
+       (should-fail))
+      ;; Case with escaped delimiter.
+      (test-with-temp-buffer
+       (replace-regexp-in-string "'" delimiter "const a = 'terminat\\'ed aaa';\n
+ const b = 'not terminated bbb")
+       (re-search-forward "term")
+       (should-not-fail (save-excursion (re-search-forward "aaa"))))
+      ;; Delimiters in comments.
+      (test-with-temp-buffer
+       (replace-regexp-in-string "'" delimiter "const a = 'terminated aaa';\n
+// Comment 'or'\n
+const b = 'not terminated bbb")
+       (re-search-forward "term")
+       (should-not-fail (save-excursion (re-search-forward "aaa")))
+       (re-search-forward "Comment ")
+       (should-fail)
+       (forward-char)
+       (should-fail)
+       (re-search-forward "or")
+       (should-fail)))
+    ;; Ignores template strings.
+    (test-with-temp-buffer
+     "const a = `terminated aaa`"
+     (re-search-forward "term")
+     (should-fail))))
+
+(ert-deftest typescript-convert-to-template ()
+  "Unit tests for `typescript-convert-to-template'."
+  (cl-flet
+      ((should-do-nothing (str regexp)
+                    (test-with-temp-buffer
+                     str
+                     (re-search-forward regexp)
+                     (typescript-convert-to-template)
+                     (should (string-equal (typescript-test-get-doc) str))))
+       (should-modify (str delimiter regexp)
+                    (test-with-temp-buffer
+                     str
+                     (re-search-forward regexp)
+                     (typescript-convert-to-template)
+                     (should (string-equal (typescript-test-get-doc)
+                                           (replace-regexp-in-string delimiter "`" str))))))
+    (dolist (delimiter '("'" "\""))
+      (let ((str (replace-regexp-in-string "'" delimiter "const a = 'not terminated")))
+        (dolist (move-to '("const" "not"))
+          (should-do-nothing str move-to)))
+      (let ((str (replace-regexp-in-string "'" delimiter "const a = 'terminated'")))
+        (should-do-nothing str "const")
+        (should-modify str delimiter delimiter)
+        (should-modify str delimiter "term")
+        (should-modify str delimiter "terminated"))
+      ;; Delimiters in comments.
+      (let ((str (replace-regexp-in-string "'" delimiter "const a = 'terminated aaa';\n
+// Comment 'or'\n
+const b = 'not terminated bbb")))
+        (should-do-nothing str "Comment ")))
+    ;; Ignores template strings.
+    (let ((str "const a = `terminated aaa`"))
+      (should-do-nothing str "terminated"))))
+
+(ert-deftest typescript-autoconvert-to-template ()
+  "Unit tests for `typescript-autoconvert-to-template'."
+  (cl-flet
+      ((should-do-nothing (str regexp)
+                    (test-with-temp-buffer
+                     str
+                     (re-search-forward regexp)
+                     (typescript-autoconvert-to-template)
+                     (should (string-equal (typescript-test-get-doc) str))))
+       (should-modify (str delimiter regexp)
+                    (test-with-temp-buffer
+                     str
+                     (re-search-forward regexp)
+                     (typescript-autoconvert-to-template)
+                     (should (string-equal (typescript-test-get-doc)
+                                           (replace-regexp-in-string delimiter "`" str))))))
+    (dolist (delimiter '("'" "\""))
+      (let ((str (replace-regexp-in-string "'" delimiter "const a = 'terminated'")))
+        (should-do-nothing str "= ")
+        (should-do-nothing str "terminated"))
+      (let ((str (replace-regexp-in-string "'" delimiter "const a = '${foo}'")))
+        (should-do-nothing str "= ")
+        (should-modify str delimiter (concat "foo}" delimiter))))))
+
+(ert-deftest typescript-autoconvert-to-template-is-invoked ()
+  "Test that we call `typescript-autoconvert-to-template' as needed."
+  (cl-flet
+      ((should-do-nothing (str delimiter)
+                    (test-with-temp-buffer
+                     str
+                     (goto-char (point-max))
+                     (execute-kbd-macro delimiter)
+                     (should (string-equal (typescript-test-get-doc) (concat str delimiter)))))
+       (should-modify (str delimiter)
+                    (test-with-temp-buffer
+                     str
+                     (goto-char (point-max))
+                     (execute-kbd-macro delimiter)
+                     (should (string-equal (typescript-test-get-doc)
+                                           (replace-regexp-in-string delimiter "`" (concat str delimiter)))))))
+    (dolist (delimiter '("'" "\""))
+      (let ((str (replace-regexp-in-string "'" delimiter "const a = '${foo}")))
+        (should-do-nothing str delimiter)
+        (let ((typescript-autoconvert-to-template-flag t))
+          (should-modify str delimiter))))))
 
 (provide 'typescript-mode-tests)
 

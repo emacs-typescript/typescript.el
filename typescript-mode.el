@@ -631,13 +631,72 @@ seldom use, either globally or on a per-buffer basis."
   :type 'hook
   :group 'typescript)
 
+(defcustom typescript-autoconvert-to-template-flag nil
+  "Non-nil means automatically convert plain strings to templates.
+
+When the flag is non-nil the `typescript-autoconvert-to-template'
+is called whenever a plain string delimiter is typed in the buffer."
+  :type 'boolean
+  :group 'typescript)
+
+;;; Public utilities
+
+(defun typescript-convert-to-template ()
+  "Convert the string at point to a template string."
+  (interactive)
+  (save-restriction
+    (widen)
+    (save-excursion
+      (let* ((syntax (syntax-ppss))
+             (str-terminator (nth 3 syntax))
+             (string-start (or (and str-terminator (nth 8 syntax))
+                               ;; We have to consider the case that we're on the start delimiter of a string.
+                               ;; We tentatively take (point) as string-start. If it turns out we're
+                               ;; wrong, then typescript--move-to-end-of-plain-string will fail anway,
+                               ;; and we won't use the bogus value.
+                               (progn
+                                 (forward-char)
+                                 (point)))))
+        (when (typescript--move-to-end-of-plain-string)
+          (let ((end-start (or (nth 8 (syntax-ppss)) -1)))
+            (undo-boundary)
+            (when (=  end-start string-start)
+              (delete-char 1)
+              (insert "`")))
+          (goto-char string-start)
+          (delete-char 1)
+          (insert "`"))))))
+
+(defun typescript-autoconvert-to-template ()
+  "Automatically convert a plain string to a teplate string, if needed.
+
+This function is meant to be automatically invoked when the user
+enters plain string delimiters.  It checks whether the character
+before point is the end of a string.  If it is, then it checks
+whether the string contains ${...}.  If it does, then it converts
+the string from a plain string to a template."
+  (interactive)
+  (save-restriction
+    (widen)
+    (save-excursion
+      (backward-char)
+      (when (and (memq (char-after) '(?' ?\"))
+                 (not (eq (char-before) ?\\)))
+        (let* ((string-start (nth 8 (syntax-ppss))))
+          (when (and string-start
+                     (save-excursion
+                       (re-search-backward "\\${.*?}" string-start t)))
+            (typescript-convert-to-template)))))))
+
 ;;; KeyMap
 
 (defvar typescript-mode-map
   (let ((keymap (make-sparse-keymap)))
-    (mapc (lambda (key)
-	    (define-key keymap key #'typescript-insert-and-indent))
-	  '("{" "}" "(" ")" ":" ";" ","))
+    (dolist (key '("{" "}" "(" ")" ":" ";" ","))
+      (define-key keymap key #'typescript-insert-and-indent))
+    (dolist (key '("\"" "\'"))
+      (define-key keymap key #'typescript-insert-and-autoconvert-to-template))
+    (define-key keymap (kbd "C-c '") #'typescript-convert-to-template)
     keymap)
   "Keymap for `typescript-mode'.")
 
@@ -655,6 +714,12 @@ comment."
                        (1+ (current-indentation)))))
       (indent-according-to-mode))))
 
+(defun typescript-insert-and-autoconvert-to-template (key)
+  "Run the command bount to KEY, and autoconvert to template if necessary."
+  (interactive (list (this-command-keys)))
+  (call-interactively (lookup-key (current-global-map) key))
+  (when typescript-autoconvert-to-template-flag
+    (typescript-autoconvert-to-template)))
 
 ;;; Syntax table and parsing
 
@@ -1489,6 +1554,46 @@ LIMIT defaults to point."
 
     (when pitem
       (goto-char (typescript--pitem-h-begin pitem )))))
+
+(defun typescript--move-to-end-of-plain-string ()
+  "If the point is in a plain string, move to the end of it.
+
+Otherwise, don't move.  A plain string is a string which is not a
+template string.  The point is considered to be \"in\" a string if
+it is on the delimiters of the string, or any point inside.
+
+Returns point if the end of the string was found, or nil if the
+end of the string was not found."
+  (let ((end-position
+         (save-excursion
+           (let* ((syntax (syntax-ppss))
+                  (str-terminator (nth 3 syntax))
+                  ;; The 8th element will also be set if we are in a comment. So we
+                  ;; check str-terminator to protect against that.
+                  (string-start (and str-terminator
+                                     (nth 8 syntax))))
+             (if (and string-start
+                      (not (eq str-terminator ?`)))
+                 ;; We may already be at the end of the string.
+                 (if (and (eq (char-after) str-terminator)
+                          (not (eq (char-before) ?\\)))
+                     (point)
+                   ;; We just search forward and then check if the hit we get has a
+                   ;; string-start equal to ours.
+                   (loop while (re-search-forward
+                                (concat "\\(?:[^\\]\\|^\\)\\(" (string str-terminator) "\\)")
+                                nil t)
+                         if (eq string-start
+                                (save-excursion (nth 8 (syntax-ppss (match-beginning 1)))))
+                         return (match-beginning 1)))
+               ;; If we are on the start delimiter then the value of syntax-ppss will look
+               ;; like we're not in a string at all, but this function considers the
+               ;; start delimiter to be "in" the string. We take care of this here.
+               (when (memq (char-after) '(?' ?\"))
+                 (forward-char)
+                 (typescript--move-to-end-of-plain-string)))))))
+    (when end-position
+      (goto-char end-position))))
 
 ;;; Font Lock
 (defun typescript--make-framework-matcher (framework &rest regexps)
