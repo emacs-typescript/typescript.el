@@ -2686,9 +2686,6 @@ Key bindings:
   ;; Frameworks
   (typescript--update-quick-match-re)
 
-  (setq major-mode 'typescript-mode)
-  (setq mode-name "typescript")
-
   ;; for filling, pretend we're cc-mode
   (setq c-comment-prefix-regexp "//+\\|\\**"
         c-paragraph-start "$"
