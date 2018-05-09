@@ -55,16 +55,10 @@
   (require 'compile)
   (require 'cc-mode)
   (require 'font-lock)
-  (require 'newcomment)
-  (require 'etags)
-  (require 'thingatpt)
-  (require 'ido)
-  (require 'json nil t))
+  (require 'newcomment))
 
 (eval-when-compile
   (require 'cl))
-
-(declare-function ido-mode "ido")
 
 ;;; Constants
 
