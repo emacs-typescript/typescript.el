@@ -38,7 +38,7 @@
 ;; The main features of this typescript mode are syntactic
 ;; highlighting (enabled with `font-lock-mode' or
 ;; `global-font-lock-mode'), automatic indentation and filling of
-;; comments and C preprocessor fontification
+;; comments.
 ;;
 ;;
 ;; General Remarks:
@@ -81,15 +81,6 @@
 (defconst typescript--dotted-name-re
   (concat typescript--name-re "\\(?:\\." typescript--name-re "\\)*")
   "Regexp matching a dot-separated sequence of typescript names.")
-
-(defconst typescript--cpp-name-re typescript--name-re
-  "Regexp matching a C preprocessor name.")
-
-(defconst typescript--opt-cpp-start "^\\s-*#\\s-*\\([[:alnum:]]+\\)"
-  "Regexp matching the prefix of a cpp directive.
-This includes the directive name, or nil in languages without
-preprocessor support.  The first submatch surrounds the directive
-name.")
 
 (defconst typescript--plain-method-re
   (concat "^\\s-*?\\(" typescript--dotted-name-re "\\)\\.prototype"
@@ -270,11 +261,6 @@ Match group 1 is the name of the function.")
    "\\s-*=\\s-*function\\_>")
   "Regexp matching a line in the typescript form \"var MUMBLE = function\".
 Match group 1 is MUMBLE.")
-
-(defconst typescript--macro-decl-re
-  (concat "^\\s-*#\\s-*define\\s-+\\(" typescript--cpp-name-re "\\)\\s-*(")
-  "Regexp matching a CPP macro definition, up to the opening parenthesis.
-Match group 1 is the name of the macro.")
 
 (defun typescript--regexp-opt-symbol (list)
   "Like `regexp-opt', but surround the result with `\\\\_<' and `\\\\_>'."
@@ -869,11 +855,7 @@ point at BOB."
 (defun typescript--re-search-forward-inner (regexp &optional bound count)
   "Helper function for `typescript--re-search-forward'."
   (let ((parse)
-        str-terminator
-        (orig-macro-end (save-excursion
-                          (when (typescript--beginning-of-macro)
-                            (c-end-of-macro)
-                            (point)))))
+        str-terminator)
     (while (> count 0)
       (re-search-forward regexp bound)
       (setq parse (syntax-ppss))
@@ -888,22 +870,15 @@ point at BOB."
             ((or (nth 4 parse)
                  (and (eq (char-before) ?\/) (eq (char-after) ?\*)))
              (re-search-forward "\\*/"))
-            ((and (not (and orig-macro-end
-                            (<= (point) orig-macro-end)))
-                  (typescript--beginning-of-macro))
-             (c-end-of-macro))
             (t
              (setq count (1- count))))))
   (point))
 
 
 (defun typescript--re-search-forward (regexp &optional bound noerror count)
-  "Search forward, ignoring strings, cpp macros, and comments.
+  "Search forward, ignoring strings and comments.
 This function invokes `re-search-forward', but treats the buffer
-as if strings, cpp macros, and comments have been removed.
-
-If invoked while inside a macro, it treats the contents of the
-macro as normal text."
+as if strings and comments have been removed."
   (let ((saved-point (point))
         (search-expr
          (cond ((null count)
@@ -922,11 +897,7 @@ macro as normal text."
 
 (defun typescript--re-search-backward-inner (regexp &optional bound count)
   "Auxiliary function for `typescript--re-search-backward'."
-  (let ((parse)
-        (orig-macro-start
-         (save-excursion
-           (and (typescript--beginning-of-macro)
-                (point)))))
+  (let ((parse))
     (while (> count 0)
       (re-search-backward regexp bound)
       (when (and (> (point) (point-min))
@@ -940,22 +911,16 @@ macro as normal text."
         (goto-char (nth 8 parse)))
        ((and (eq (char-before) ?/) (eq (char-after) ?*))
         (re-search-backward "/\\*"))
-       ((and (not (and orig-macro-start
-                       (>= (point) orig-macro-start)))
-             (typescript--beginning-of-macro)))
        (t
         (setq count (1- count))))))
   (point))
 
 
 (defun typescript--re-search-backward (regexp &optional bound noerror count)
-  "Search backward, ignoring strings, preprocessor macros, and comments.
+  "Search backward, ignoring strings, and comments.
 
 This function invokes `re-search-backward' but treats the buffer
-as if strings, preprocessor macros, and comments have been
-removed.
-
-If invoked while inside a macro, treat the macro as normal text.
+as if strings and comments have been removed.
 
 IMPORTANT NOTE: searching for \"\\n\" with this function to find
 line breaks will generally not work, because the final newline of
@@ -1345,21 +1310,6 @@ LIMIT defaults to point."
                                 name
                               (typescript--split-name name))))
 
-                    ;; Macro
-                    ((looking-at typescript--macro-decl-re)
-
-                     ;; Macros often contain unbalanced parentheses.
-                     ;; Make sure that h-end is at the textual end of
-                     ;; the macro no matter what the parenthesis say.
-                     (c-end-of-macro)
-                     (typescript--ensure-cache--update-parse)
-
-                     (make-typescript--pitem
-                      :paren-depth (nth 0 parse)
-                      :h-begin orig-match-start
-                      :type 'macro
-                      :name (list (match-string-no-properties 1))))
-
                     ;; "Prototype function" declaration
                     ((looking-at typescript--plain-method-re)
                      (goto-char (match-beginning 3))
@@ -1470,30 +1420,13 @@ LIMIT defaults to point."
 
               (t (typescript--end-of-defun-nested)))))))
 
-(defun typescript--beginning-of-macro (&optional lim)
-  (let ((here (point)))
-    (save-restriction
-      (if lim (narrow-to-region lim (point-max)))
-      (beginning-of-line)
-      (while (eq (char-before (1- (point))) ?\\)
-        (forward-line -1))
-      (back-to-indentation)
-      (if (and (<= (point) here)
-               (looking-at typescript--opt-cpp-start))
-          t
-        (goto-char here)
-        nil))))
-
 (defun typescript--backward-syntactic-ws (&optional lim)
   "Simple implementation of `c-backward-syntactic-ws' for `typescript-mode'."
   (save-restriction
     (when lim (narrow-to-region lim (point-max)))
 
-    (let ((in-macro (save-excursion (typescript--beginning-of-macro)))
-          (pos (point)))
-
-      (while (progn (unless in-macro (typescript--beginning-of-macro))
-                    (forward-comment most-negative-fixnum)
+    (let ((pos (point)))
+      (while (progn (forward-comment most-negative-fixnum)
                     (/= (point)
                         (prog1
                             pos
@@ -1506,8 +1439,6 @@ LIMIT defaults to point."
     (let ((pos (point)))
       (while (progn
                (forward-comment most-positive-fixnum)
-               (when (eq (char-after) ?#)
-                 (c-end-of-macro))
                (/= (point)
                    (prog1
                        pos
@@ -1751,13 +1682,6 @@ and searches for the next token to be highlighted."
 
 (defconst typescript--font-lock-keywords-3
   `(
-    ;; This goes before keywords-2 so it gets used preferentially
-    ;; instead of the keywords in keywords-2. Don't use override
-    ;; because that will override syntactic fontification too, which
-    ;; will fontify commented-out directives as if they weren't
-    ;; commented out.
-    ,@cpp-font-lock-keywords ; from font-lock.el
-
     ,@typescript--font-lock-keywords-2
 
     (typescript--jsdoc-param-matcher (1 'typescript-jsdoc-tag t t)
@@ -2318,7 +2242,6 @@ moved on success."
           ((nth 8 parse-status) 0) ; inside string
           ((typescript--ctrl-statement-indentation))
           ((eq (char-after) ?#) 0)
-          ((save-excursion (typescript--beginning-of-macro)) 4)
           ((nth 1 parse-status)
            (let ((same-indent-p (looking-at "[]})]"))
                  (switch-keyword-p (looking-at "\\_<default\\_>\\|\\_<case\\_>[^:]"))
@@ -2394,10 +2317,7 @@ moved on success."
                (typescript--forward-syntactic-ws limit)))
             ((symbol-function 'c-backward-sws)
              (lambda  (&optional limit)
-               (typescript--backward-syntactic-ws limit)))
-            ((symbol-function 'c-beginning-of-macro)
-             (lambda  (&optional limit)
-               (typescript--beginning-of-macro limit))))
+               (typescript--backward-syntactic-ws limit))))
     (let ((fill-paragraph-function 'c-fill-paragraph))
       (c-fill-paragraph justify))))
 
