@@ -55,6 +55,7 @@
   (require 'compile)
   (require 'cc-mode)
   (require 'font-lock)
+  (require 'rx)
   (require 'newcomment))
 
 (eval-when-compile
@@ -1776,6 +1777,12 @@ and searches for the next token to be highlighted."
 
     ("\\.\\(prototype\\)\\_>"
      (1 font-lock-constant-face))
+
+    (,(rx "class" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
+     (1 font-lock-type-face))
+
+    (,(rx "implements" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
+     (1 font-lock-type-face))
 
     ;; Highlights class being declared, in parts
     (typescript--class-decl-matcher

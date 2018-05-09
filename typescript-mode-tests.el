@@ -398,6 +398,12 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
    "=/foo\\\\/g something // comment"
    (should (eq (get-face-at "g something") nil))))
 
+(ert-deftest font-lock/class-names ()
+  "Class names should be highlighted as types."
+  (test-with-fontified-buffer
+      "export class Foo implements Bar {}"
+    (should (eq (get-face-at "Foo") 'font-lock-type-face))
+    (should (eq (get-face-at "Bar") 'font-lock-type-face))))
 
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
