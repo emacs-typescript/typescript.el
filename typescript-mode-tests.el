@@ -398,12 +398,28 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
    "=/foo\\\\/g something // comment"
    (should (eq (get-face-at "g something") nil))))
 
-(ert-deftest font-lock/class-names ()
-  "Class names should be highlighted as types."
+(ert-deftest font-lock/type-names ()
+  "Type names should be highlighted in definitions."
+  ;; Typical case.
   (test-with-fontified-buffer
-      "export class Foo implements Bar {}"
+      "export class Foo extends Bar implements Qux {}"
     (should (eq (get-face-at "Foo") 'font-lock-type-face))
-    (should (eq (get-face-at "Bar") 'font-lock-type-face))))
+    (should (eq (get-face-at "Bar") 'font-lock-type-face))
+    (should (eq (get-face-at "Qux") 'font-lock-type-face)))
+  ;; Ensure we require symbol boundaries.
+  (test-with-fontified-buffer
+      "Notclass Foo"
+    (should (not (eq (get-face-at "Foo") 'font-lock-type-face))))
+  ;; Other common ways of defining types.
+  (test-with-fontified-buffer
+      "interface Thing {}"
+    (should (eq (get-face-at "Thing") 'font-lock-type-face)))
+  (test-with-fontified-buffer
+      "enum Thing {}"
+    (should (eq (get-face-at "Thing") 'font-lock-type-face)))
+  (test-with-fontified-buffer
+      "type Thing = number;"
+    (should (eq (get-face-at "Thing") 'font-lock-type-face))))
 
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on

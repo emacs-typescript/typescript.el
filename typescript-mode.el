@@ -1778,10 +1778,22 @@ and searches for the next token to be highlighted."
     ("\\.\\(prototype\\)\\_>"
      (1 font-lock-constant-face))
 
-    (,(rx "class" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
+    (,(rx symbol-start "class" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
      (1 font-lock-type-face))
 
-    (,(rx "implements" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
+    (,(rx symbol-start "extends" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
+     (1 font-lock-type-face))
+
+    (,(rx symbol-start "implements" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
+     (1 font-lock-type-face))
+
+    (,(rx symbol-start "interface" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
+     (1 font-lock-type-face))
+
+    (,(rx symbol-start "type" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
+     (1 font-lock-type-face))
+
+    (,(rx symbol-start "enum" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
      (1 font-lock-type-face))
 
     ;; Highlights class being declared, in parts
