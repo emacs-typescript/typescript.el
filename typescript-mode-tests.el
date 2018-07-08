@@ -620,6 +620,34 @@ const b = 'not terminated bbb")))
         (let ((typescript-autoconvert-to-template-flag t))
           (should-modify str delimiter))))))
 
+;; compilation-mode tests
+
+(ert-deftest recognizes-tsc-errors ()
+
+  (dolist (test-case
+           ;; typescript 2.6 and earlier
+           `(("test.ts(2,7): error TS2322: Type '2' is not assignable to type 'string'."
+              ,typescript-tsc-error-regexp
+              "test.ts")
+
+             ;; typescript 2.7 and later
+             ("test.ts:2:7 - error TS2322: Type '2' is not assignable to type 'string'."
+              ,typescript-tsc27-error-regexp
+              "test.ts")
+             ))
+    (let* ((text (car test-case))
+           (regexp    (cadr test-case))
+           (matched-file-name (cl-caddr test-case))
+           (times     1))
+      (with-temp-buffer
+        (insert text)
+        (goto-char (point-min))
+
+        (re-search-forward regexp)
+        (should
+         (equal matched-file-name (match-string 1)))))))
+
+
 (provide 'typescript-mode-tests)
 
 ;;; typescript-mode-tests.el ends here
