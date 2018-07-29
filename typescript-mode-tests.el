@@ -322,38 +322,38 @@ when prefixed with module modifiers."
 export function exportedDefn(x1: xty1, y1: yty1): ret1 {}\n
 export default function exportedDefaultDefn(x2: xty2, y2: yty2): ret2 {}\n
 declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
-    '(("basicDefn" . font-lock-function-name-face)
-      ("exportedDefn" . font-lock-function-name-face)
-      ("exportedDefaultDefn" . font-lock-function-name-face)
-      ("declareFunctionDefn" . font-lock-function-name-face)
-      (("x0" "x1" "x2" "x3") . font-lock-variable-name-face)
-      (("y0" "y1" "y2" "y3") . font-lock-variable-name-face)
+    '(("basicDefn" . typescript-function-name-face)
+      ("exportedDefn" . typescript-function-name-face)
+      ("exportedDefaultDefn" . typescript-function-name-face)
+      ("declareFunctionDefn" . typescript-function-name-face)
+      (("x0" "x1" "x2" "x3") . typescript-variable-name-face)
+      (("y0" "y1" "y2" "y3") . typescript-variable-name-face)
       (("ret0" "ret1" "ret2" "ret3") . nil))))
 
 (ert-deftest font-lock/regexp ()
   "Regular expresssions should be fontified as string constant."
   (let ((content "=/foo/ (/bar/ ,/baz/ :/buzz/"))
     (font-lock-test content
-                    '(("=" . nil) ("/foo/" . font-lock-string-face)
-                      ("(" . nil) ("/bar/" . font-lock-string-face)
-                      ("," . nil) ("/baz/" . font-lock-string-face)
-                      (":" . nil) ("/buzz/" . font-lock-string-face))))
+                    '(("=" . nil) ("/foo/" . typescript-string-face)
+                      ("(" . nil) ("/bar/" . typescript-string-face)
+                      ("," . nil) ("/baz/" . typescript-string-face)
+                      (":" . nil) ("/buzz/" . typescript-string-face))))
   ;; Make sure that escaped forward slashes are handled too.
   (font-lock-test "var a = /flip\\/flop/;"
                   '(("=" . nil)
-                    (("/flip" "\\\\" "/" "flop/") . font-lock-string-face)
+                    (("/flip" "\\\\" "/" "flop/") . typescript-string-face)
                     (";" . nil)))
   ;; Make sure a forward slash in a character class is handled fine.
   ;; It must not terminate the regular expression.
   (font-lock-test "var a = /[/]/;"
                   '(("=" . nil)
-                    (("/" "\\[/" "\\]/") . font-lock-string-face)
+                    (("/" "\\[/" "\\]/") . typescript-string-face)
                     (";" . nil)))
   ;; Make sure an open bracket in a character class does not
   ;; throw off fontification.
   (font-lock-test "var a = /[[]/;"
                   '(("=" . nil)
-                    (("/" "\\[\\[\\]" "/") . font-lock-string-face)
+                    (("/" "\\[\\[\\]" "/") . typescript-string-face)
                     (";" . nil)))
   ;; A sequence of two forward slashes is never a regex, so there is
   ;; no such thing as an \"empty regex\" when we use the forward slash
@@ -368,9 +368,9 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
     yield 123;
     yield* subIter;
 }"
-   '(("yield 123" . font-lock-keyword-face)
-     ("yield\\*" . font-lock-keyword-face)
-     ("\\* subIter" . font-lock-keyword-face))))
+   '(("yield 123" . typescript-keyword-face)
+     ("yield\\*" . typescript-keyword-face)
+     ("\\* subIter" . typescript-keyword-face))))
 
 (ert-deftest font-lock/yielder ()
   "`yielder' should not be fontified as a keyword."
@@ -380,7 +380,7 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
     yield abc;
     return yielder;
 }"
-   '(("yielder =" . font-lock-variable-name-face)
+   '(("yielder =" . typescript-variable-name-face)
      ("yielder;" . nil))))
 
 (ert-deftest font-lock/text-after-trailing-regexp-delim-should-not-be-fontified ()
@@ -403,23 +403,23 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
   ;; Typical case.
   (test-with-fontified-buffer
       "export class Foo extends Bar implements Qux {}"
-    (should (eq (get-face-at "Foo") 'font-lock-type-face))
-    (should (eq (get-face-at "Bar") 'font-lock-type-face))
-    (should (eq (get-face-at "Qux") 'font-lock-type-face)))
+    (should (eq (get-face-at "Foo") 'typescript-type-face))
+    (should (eq (get-face-at "Bar") 'typescript-type-face))
+    (should (eq (get-face-at "Qux") 'typescript-type-face)))
   ;; Ensure we require symbol boundaries.
   (test-with-fontified-buffer
       "Notclass Foo"
-    (should (not (eq (get-face-at "Foo") 'font-lock-type-face))))
+    (should (not (eq (get-face-at "Foo") 'typescript-type-face))))
   ;; Other common ways of defining types.
   (test-with-fontified-buffer
       "interface Thing {}"
-    (should (eq (get-face-at "Thing") 'font-lock-type-face)))
+    (should (eq (get-face-at "Thing") 'typescript-type-face)))
   (test-with-fontified-buffer
       "enum Thing {}"
-    (should (eq (get-face-at "Thing") 'font-lock-type-face)))
+    (should (eq (get-face-at "Thing") 'typescript-type-face)))
   (test-with-fontified-buffer
       "type Thing = number;"
-    (should (eq (get-face-at "Thing") 'font-lock-type-face))))
+    (should (eq (get-face-at "Thing") 'typescript-type-face))))
 
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
