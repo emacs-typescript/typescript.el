@@ -538,20 +538,50 @@ Match group 1 is MUMBLE.")
 
 ;;; Faces
 
+(defgroup typescript-faces nil
+  "Faces used in Typescript Mode"
+  :tag "Typescript Faces"
+  :group 'typescript
+  :group 'faces)
+
+(defface typescript-string-face '((t (:inherit font-lock-string-face)))
+  "Typescript Mode face used to highlight string literals."
+  :group 'typescript-faces)
+
+(defface typescript-keyword-face '((t (:inherit font-lock-keyword-face)))
+  "Typescript Mode face used to highlight keywords."
+  :group 'typescript-faces)
+
+(defface typescript-function-name-face '((t (:inherit font-lock-function-name-face)))
+  "Typescript Mode face used to highlight function names."
+  :group 'typescript-faces)
+
+(defface typescript-variable-name-face '((t (:inherit font-lock-variable-name-face)))
+  "Typescript Mode face used to highlight variable names."
+  :group 'typescript-faces)
+
+(defface typescript-type-face '((t (:inherit font-lock-type-face)))
+  "Typescript Mode face used to highlight types."
+  :group 'typescript-faces)
+
+(defface typescript-constant-face '((t (:inherit font-lock-constant-face)))
+  "Typescript Mode face used to highlight constants."
+  :group 'typescript-faces)
+
 (defface typescript-jsdoc-tag
   '((t :foreground "SlateGray"))
   "Face used to highlight @whatever tags in jsdoc comments."
-  :group 'typescript)
+  :group 'typescript-faces)
 
 (defface typescript-jsdoc-type
   '((t :foreground "SteelBlue"))
   "Face used to highlight {FooBar} types in jsdoc comments."
-  :group 'typescript)
+  :group 'typescript-faces)
 
 (defface typescript-jsdoc-value
   '((t :foreground "gold4"))
   "Face used to highlight tag values in jsdoc comments."
-  :group 'typescript)
+  :group 'typescript-faces)
 
 ;;; User Customization
 
@@ -2612,6 +2642,14 @@ Key bindings:
   (setq-local beginning-of-defun-function 'typescript-beginning-of-defun)
   (setq-local end-of-defun-function 'typescript-end-of-defun)
   (setq-local open-paren-in-column-0-is-defun-start nil)
+
+  ;; Highlighting
+  (setq-local font-lock-string-face 'typescript-string-face)
+  (setq-local font-lock-keyword-face 'typescript-keyword-face)
+  (setq-local font-lock-function-name-face 'typescript-function-name-face)
+  (setq-local font-lock-variable-name-face 'typescript-variable-name-face)
+  (setq-local font-lock-type-face 'typescript-type-face)
+  (setq-local font-lock-constant-face 'typescript-constant-face)
   (setq-local font-lock-defaults (list typescript--font-lock-keywords))
   (setq-local syntax-propertize-function #'typescript-syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)

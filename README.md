@@ -23,6 +23,17 @@ To install typescript.el simply type `M-x package-install<RET>typescript-mode<RE
 
 To customize `typescript.el` just type the following: `M-x customize-group<RET>typescript<RET>`.
 
+### Faces
+
+`typescript.el` provides the following faces that inherit from `font-lock`, but can be customized to your liking.
+
+* `typescript-string-face`
+* `typescript-keyword-face`
+* `typescript-function-name-face`
+* `typescript-variable-name-face`
+* `typescript-type-face`
+* `typescript-constant-face`
+
 You can add any other customization you like to `typescript-mode-hook`
 in your `init.el` file. `typescript.el` also handles `prog-mode-hook`
 on versions of Emacs which supports it.
