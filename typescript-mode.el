@@ -270,13 +270,13 @@ Match group 1 is MUMBLE.")
      "interface" "keyof" "let" "module" "namespace" "new" "null" "number" "object" "of"
      "private" "protected" "public" "readonly" "return" "set" "static" "string"
      "super" "switch"  "this" "throw" "true"
-     "try" "type" "typeof" "var" "void"
+     "try" "type" "typeof" "unknown" "var" "void"
      "while"))                  ; yield is handled separately
   "Regexp matching any typescript keyword.")
 
 (defconst typescript--basic-type-re
   (typescript--regexp-opt-symbol
-   '("bool" "boolean" "string" "number" "any" "void"))
+   '("bool" "boolean" "string" "number" "any" "unknown" "void"))
   "Regular expression matching any predefined type in typescript.")
 
 (defconst typescript--constant-re
