@@ -625,14 +625,12 @@ const b = 'not terminated bbb")))
 (ert-deftest recognizes-tsc-errors ()
 
   (dolist (test-case
-           ;; typescript 2.6 and earlier
            `(("test.ts(2,7): error TS2322: Type '2' is not assignable to type 'string'."
               ,typescript-tsc-error-regexp
               "test.ts")
 
-             ;; typescript 2.7 and later
              ("test.ts:2:7 - error TS2322: Type '2' is not assignable to type 'string'."
-              ,typescript-tsc27-error-regexp
+              ,typescript-tsc-pretty-error-regexp
               "test.ts")
              ))
     (let* ((text (car test-case))
