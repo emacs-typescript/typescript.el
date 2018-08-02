@@ -27,6 +27,29 @@ You can add any other customization you like to `typescript-mode-hook`
 in your `init.el` file. `typescript.el` also handles `prog-mode-hook`
 on versions of Emacs which supports it.
 
+# Support for Complation Mode
+
+This mode automatically adds support for `compilation-mode` so that if
+you run `M-x compile<ret>tsc<ret>` the error messages are correctly
+parsed.
+
+However, the error messages produced by `tsc` when its `pretty` flag
+is turned on include ANSI color escapes, which by default
+`compilation-mode` does not interpret. In order to get the escapes
+parsed, you can use:
+
+```elisp
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (ansi-color-apply-on-region compilation-filter-start (point-max)))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+```
+
+Or, if you prefer, you can configure `tsc` with the `pretty` flag set
+to `false`: `tsc --pretty false`. However, doing this does more than
+just turning off the colors. It also causes `tsc` to produce less
+elaborate error messages.
+
 # Other Typescript-packages of interest
 
 While `typescript.el` may *not* provide a full kitchen-sink, the good
