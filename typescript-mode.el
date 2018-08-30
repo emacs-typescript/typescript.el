@@ -2030,6 +2030,29 @@ This performs fontification according to `typescript--class-styles'."
   "\\(?:NaN\\|-?\\(?:0[Bb][01]+\\|0[Oo][0-7]+\\|0[Xx][0-9a-fA-F]+\\|Infinity\\|\\(?:[[:digit:]]*\\.[[:digit:]]+\\|[[:digit:]]+\\)\\(?:[Ee][+-]?[[:digit:]]+\\)?\\)\\)"
   "Regexp that matches number literals.")
 
+(defconst typescript--symbols-forbidden-in-type-parameters-re
+  ;; NOTE: character - must be first inside []
+  "[-+*/%=]\\|&&\\|||"
+  ;; (concat "[+-*/%=]\\|" (typescript--regexp-opt-symbol '("as")))
+  "Regexp that matches those symbols that cannot appear in type parameters.
+This includes the one character symbols: +, -, *, /, %, =
+And the sequences of symbols: &&, ||")
+
+(defun typescript--search-backward-matching-angle-bracket (depth)
+  "Search for matching \"<\" preceding a starting \">\". DEPTH indicates how nested we think we are."
+  ;; We look backwards for a "<" that would correspond to the ">" we started
+  ;; from.  However, there is no guarantee that it exists, since our ">" could
+  ;; be a greater-than operation.  Some symbols will make it clear that we are
+  ;; *not* in a type annotation, so we can return "nil". Otherwise, we keep
+  ;; *looking for the matching one.
+  (progn
+    (if (<= depth 0) t
+      (and
+       (typescript--re-search-backward (concat "[<>]\\|" typescript--symbols-forbidden-in-type-parameters-re) nil t)
+       (or
+        (when (looking-at "<") (typescript--search-backward-matching-angle-bracket (- depth 1)))
+        (when (looking-at ">") (typescript--search-backward-matching-angle-bracket (+ depth 1))))))))
+
 (defun typescript--looking-at-operator-p ()
   "Return non-nil if point is on a typescript operator, other than a comma."
   (save-match-data
@@ -2055,6 +2078,44 @@ This performs fontification according to `typescript--class-styles'."
                (save-excursion
                  (typescript--backward-syntactic-ws)
                  (memq (char-before) '(?, ?{ ?} ?\;)))))
+         ;; Do not identify the symbol > if it is likely part of a type argument
+         ;; T<A>, but identify it if it is likely a greater-than symbol. This is
+         ;; a hard problem in the absence of semicolons, see:
+         ;; https://github.com/ananthakumaran/typescript.el/issues/81
+         (not (and
+               (looking-at ">")
+               (save-excursion
+                 (and
+                  (typescript--search-backward-matching-angle-bracket 1)
+                  ;; If we made it here, we found a candidate matching opening
+                  ;; angle bracket. We still need to guess whether it actually
+                  ;; is one, and not a spurious less-than operator!
+                  (progn
+                    (backward-char)
+                    ;; Look backwards for the first of:
+                    ;; - one of the symbols: = < [ ]
+                    ;; - or a TypeScript keyword
+                    ;; Depending on what comes first, we can make an educated
+                    ;; guess on the nature of our ">" of interest.
+                    (typescript--re-search-backward (concat "[=<\\[]\\|" typescript--keyword-re) nil t)
+                    (or
+                     ;; If the previous keyword is "as", we were likely in a
+                     ;; type annotation.
+                     (when (looking-at (typescript--regexp-opt-symbol '("as"))) t)
+                     ;; This final check lets us distinguish between a
+                     ;; 2-argument type "t < a , b > ..." and a use of the ","
+                     ;; operator between two comparisons "t < a , b > ...".
+                     (when (looking-at "=")
+                       (backward-char)
+                       (and
+                        ;; The heuristic is: if we keep searching backwards for
+                        ;; either a "=" symbol or the "type" keyword, the first
+                        ;; one we encounter lets us conclude. Again, see:
+                        ;; https://github.com/ananthakumaran/typescript.el/issues/81
+                        (typescript--re-search-backward (concat "[=]\\|" (typescript--regexp-opt-symbol '("type"))) nil t)
+                        (or
+                         (when (looking-at (typescript--regexp-opt-symbol '("type"))) t)
+                         (when (looking-at "=") nil))))))))))
          (not (and
                (looking-at "*")
                ;; Generator method (possibly using computed property).
