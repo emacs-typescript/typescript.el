@@ -496,5 +496,60 @@ function blipblop(): void {
     }
 }
 
+// The following section deals with distinguishing the purpose of the symbol >
+// when it appears at the end of a line.
+// cf. https://github.com/ananthakumaran/typescript.el/issues/81
+{
+
+    var a, b, c, d, e, f, l, o, t, x, z
+    type z      = {} // Zero argument
+    type o<A>   = {} // One  argument
+    type t<A,B> = {} // Two  arguments
+
+    // greater-than operator
+    x = b >
+        c
+    // looks like a<b,c> but is greater-than operator
+    x = t < z , z >
+        f()
+    // looks almost the same but this time, it's a type
+    type x = t < z , z >
+    f()
+    // looks almost the same but this time, it's a type
+    x = a as t < z , z >
+    f()
+    // tricky, this is greater-than, because "number" is a keyword
+    a = b as number < z , z >
+        f()
+
+    // Next one is ambiguous! It could be read as:
+    // (b as t) < z, z > f()
+    // or
+    // b as (t < z , z >) \n f()
+    // It turns out that when t is not a keyword, TypeScript always chooses the
+    // latter, and complains if you attempted the former
+    a = b as t < z , z >
+    f()
+
+    l = [
+        // operator at end of line
+        a >
+            b,
+        // operator alone on line
+        a
+            >
+            b,
+        // end of 1st line is type argument, 2nd is operator
+        a as b < c , d >
+            >
+            d
+    ]
+
+    // properly-closed parameterized type, followed by operator
+    g = a as o < z > >
+        b
+
+}
+
 container.each(x => x)
 something() // No reason for this to be indented! (cf. issue #83)
