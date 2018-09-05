@@ -2030,6 +2030,10 @@ This performs fontification according to `typescript--class-styles'."
   "\\(?:NaN\\|-?\\(?:0[Bb][01]+\\|0[Oo][0-7]+\\|0[Xx][0-9a-fA-F]+\\|Infinity\\|\\(?:[[:digit:]]*\\.[[:digit:]]+\\|[[:digit:]]+\\)\\(?:[Ee][+-]?[[:digit:]]+\\)?\\)\\)"
   "Regexp that matches number literals.")
 
+(defconst typescript--reserved-start-keywords-re
+    (typescript--regexp-opt-symbol '("const" "export" "function" "import" "let" "type" "var"))
+    "These keywords cannot be variable or type names and start a new sentence.")
+
 (defun typescript--search-backward-matching-angle-bracket (depth)
   "Search for matching \"<\" preceding a starting \">\". DEPTH indicates how nested we think we are."
   ;; We look backwards for a "<" that would correspond to the ">" we started
@@ -2040,7 +2044,9 @@ This performs fontification according to `typescript--class-styles'."
   (progn
     (if (<= depth 0) t
       (and
-       (typescript--re-search-backward "[<>]" nil t)
+       ;; If we cross over a reserved start keyword, we abandon hope of finding
+       ;; a matching angle bracket.  This prevents extreme recursion depths.
+       (typescript--re-search-backward (concat "[<>]\\|" typescript--reserved-start-keywords-re) nil t)
        (or
         (when (looking-at "<") (typescript--search-backward-matching-angle-bracket (- depth 1)))
         (when (looking-at ">") (typescript--search-backward-matching-angle-bracket (+ depth 1))))))))
