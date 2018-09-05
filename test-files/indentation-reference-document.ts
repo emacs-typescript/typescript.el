@@ -549,6 +549,35 @@ function blipblop(): void {
     g = a as o < z > >
         b
 
+    // Good case
+    class Q<X> {
+        q: string = "a"
+    }
+
+    type a<X> =
+        Q<X>
+    const blah = 1
+
+    // Problem cases
+    interface Something {
+        a: string;
+        b: string;
+        c: -5;
+    }
+
+    class Fluff<X extends Something> {
+    }
+
+    // Example of = and - in a type parameter.
+    type c<X extends Something = { a: string; b: string; c: -5; more: string }>
+        = Fluff<X>
+    const moo = 1
+
+    // Example of + in a type parameter.
+    type d<X extends Something = { +readonly [P in keyof Something]: Something[P] }>
+        = Fluff<X>
+    const moo2 = 1
+
 }
 
 container.each(x => x)

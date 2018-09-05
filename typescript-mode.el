@@ -2030,14 +2030,6 @@ This performs fontification according to `typescript--class-styles'."
   "\\(?:NaN\\|-?\\(?:0[Bb][01]+\\|0[Oo][0-7]+\\|0[Xx][0-9a-fA-F]+\\|Infinity\\|\\(?:[[:digit:]]*\\.[[:digit:]]+\\|[[:digit:]]+\\)\\(?:[Ee][+-]?[[:digit:]]+\\)?\\)\\)"
   "Regexp that matches number literals.")
 
-(defconst typescript--symbols-forbidden-in-type-parameters-re
-  ;; NOTE: character - must be first inside []
-  "[-+*/%=]\\|&&\\|||"
-  ;; (concat "[+-*/%=]\\|" (typescript--regexp-opt-symbol '("as")))
-  "Regexp that matches those symbols that cannot appear in type parameters.
-This includes the one character symbols: +, -, *, /, %, =
-And the sequences of symbols: &&, ||")
-
 (defun typescript--search-backward-matching-angle-bracket (depth)
   "Search for matching \"<\" preceding a starting \">\". DEPTH indicates how nested we think we are."
   ;; We look backwards for a "<" that would correspond to the ">" we started
@@ -2048,10 +2040,22 @@ And the sequences of symbols: &&, ||")
   (progn
     (if (<= depth 0) t
       (and
-       (typescript--re-search-backward (concat "[<>]\\|" typescript--symbols-forbidden-in-type-parameters-re) nil t)
+       (typescript--re-search-backward "[<>]" nil t)
        (or
         (when (looking-at "<") (typescript--search-backward-matching-angle-bracket (- depth 1)))
         (when (looking-at ">") (typescript--search-backward-matching-angle-bracket (+ depth 1))))))))
+
+(defun typescript--re-search-backward-ignoring-angle-brackets (re)
+  "Search backward for regexp RE, jumping over text within angle brackets.
+RE should not expect to find characters \"<\" or \">\"."
+  (progn
+    (and
+     (typescript--re-search-backward (concat "[>]\\|" re) nil t)
+     (if (looking-at ">")
+         (progn
+           (typescript--search-backward-matching-angle-bracket 1)
+           (typescript--re-search-backward-ignoring-angle-brackets re))
+       t))))
 
 (defun typescript--looking-at-operator-p ()
   "Return non-nil if point is on a typescript operator, other than a comma."
@@ -2112,10 +2116,8 @@ And the sequences of symbols: &&, ||")
                         ;; either a "=" symbol or the "type" keyword, the first
                         ;; one we encounter lets us conclude. Again, see:
                         ;; https://github.com/ananthakumaran/typescript.el/issues/81
-                        (typescript--re-search-backward (concat "[=]\\|" (typescript--regexp-opt-symbol '("type"))) nil t)
-                        (or
-                         (when (looking-at (typescript--regexp-opt-symbol '("type"))) t)
-                         (when (looking-at "=") nil))))))))))
+                        (typescript--re-search-backward-ignoring-angle-brackets (concat "[=]\\|" (typescript--regexp-opt-symbol '("type"))))
+                        (when (looking-at (typescript--regexp-opt-symbol '("type"))) t)))))))))
          (not (and
                (looking-at "*")
                ;; Generator method (possibly using computed property).
