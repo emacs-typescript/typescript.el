@@ -495,3 +495,6 @@ function blipblop(): void {
         const q = 1;
     }
 }
+
+container.each(x => x)
+something() // No reason for this to be indented! (cf. issue #83)

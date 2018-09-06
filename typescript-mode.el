@@ -2003,8 +2003,7 @@ This performs fontification according to `typescript--class-styles'."
 
 (defconst typescript--possibly-braceless-keyword-re
   (typescript--regexp-opt-symbol
-   '("catch" "do" "else" "finally" "for" "if" "try" "while" "with"
-     "each"))
+   '("catch" "do" "else" "finally" "for" "if" "try" "while" "with"))
   "Regexp matching keywords optionally followed by an opening brace.")
 
 (defconst typescript--indent-keyword-re
