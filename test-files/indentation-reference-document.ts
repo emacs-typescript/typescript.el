@@ -578,6 +578,40 @@ function blipblop(): void {
         = Fluff<X>
     const moo2 = 1
 
+    class Foo {
+        a : O<Z>
+        public readonly a : O<Z>
+        public b : O<Z>
+        private c : O<Z>
+        private d : O<Z>
+    }
+
+    type Foo {
+        readonly a : O<Z>
+        b : O<Z>
+        readonly b : O<Z>
+        c : { }
+        d : O<Z>
+    }
+
+    a = a ? a < a : a >
+        a
+
+    a = a ? a : a < a || a >
+        a
+
+    a = a ? a < a : a >
+        a
+    // ^ This test is the same as two above, but a bad guess could answer differently.
+
+    type Foo { }
+    a = a ? a < a : a >
+        a
+
+    class Foo { }
+    a = a ? a < a : a >
+        a
+
 }
 
 container.each(x => x)

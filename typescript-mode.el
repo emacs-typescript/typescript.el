@@ -2100,30 +2100,33 @@ RE should not expect to find characters \"<\" or \">\"."
                   ;; If we made it here, we found a candidate matching opening
                   ;; angle bracket. We still need to guess whether it actually
                   ;; is one, and not a spurious less-than operator!
-                  (progn
-                    (backward-char)
-                    ;; Look backwards for the first of:
-                    ;; - one of the symbols: = < [ ]
-                    ;; - or a TypeScript keyword
-                    ;; Depending on what comes first, we can make an educated
-                    ;; guess on the nature of our ">" of interest.
-                    (typescript--re-search-backward (concat "[=<\\[]\\|" typescript--keyword-re) nil t)
-                    (or
-                     ;; If the previous keyword is "as", we were likely in a
-                     ;; type annotation.
-                     (when (looking-at (typescript--regexp-opt-symbol '("as"))) t)
-                     ;; This final check lets us distinguish between a
-                     ;; 2-argument type "t < a , b > ..." and a use of the ","
-                     ;; operator between two comparisons "t < a , b > ...".
-                     (when (looking-at "=")
-                       (backward-char)
-                       (and
-                        ;; The heuristic is: if we keep searching backwards for
-                        ;; either a "=" symbol or the "type" keyword, the first
-                        ;; one we encounter lets us conclude. Again, see:
-                        ;; https://github.com/ananthakumaran/typescript.el/issues/81
-                        (typescript--re-search-backward-ignoring-angle-brackets (concat "[=]\\|" (typescript--regexp-opt-symbol '("type"))))
-                        (when (looking-at (typescript--regexp-opt-symbol '("type"))) t)))))))))
+
+                  ;; Look backwards for the first of:
+                  ;; - one of the symbols: = :
+                  ;; - or a TypeScript keyword
+                  ;; Depending on what comes first, we can make an educated
+                  ;; guess on the nature of our ">" of interest.
+                  (typescript--re-search-backward (concat "[=:]\\|" typescript--keyword-re) nil t)
+                  (or
+                   ;; If the previous keyword is "as", definitely a type.
+                   (when (looking-at (typescript--regexp-opt-symbol '("as"))) t)
+                   ;; A colon could be either a type symbol, or a ternary
+                   ;; operator, try to guess which.
+                   (when (looking-at ":")
+                     (and
+                      (typescript--re-search-backward
+                       (concat "[?]\\|" (typescript--regexp-opt-symbol '("as" "class" "private" "public" "readonly" "type")))
+                       nil t)
+                      (not (looking-at "?"))
+                      ))
+                   ;; This final check lets us distinguish between a
+                   ;; 2-argument type "t < a , b > ..." and a use of the ","
+                   ;; operator between two comparisons "t < a , b > ...".
+                   ;; Looking back a little more lets us guess.
+                   (when (looking-at "=")
+                     (and
+                      (typescript--re-search-backward-ignoring-angle-brackets (concat "[=}]\\|" (typescript--regexp-opt-symbol '("type"))))
+                      (when (looking-at (typescript--regexp-opt-symbol '("type"))) t))))))))
          (not (and
                (looking-at "*")
                ;; Generator method (possibly using computed property).
