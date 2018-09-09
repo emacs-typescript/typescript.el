@@ -2031,8 +2031,12 @@ This performs fontification according to `typescript--class-styles'."
   "Regexp that matches number literals.")
 
 (defconst typescript--reserved-start-keywords-re
-    (typescript--regexp-opt-symbol '("const" "export" "function" "import" "let" "type" "var"))
-    "These keywords cannot be variable or type names and start a new sentence.")
+  (typescript--regexp-opt-symbol '("const" "export" "function" "import" "let" "var"))
+  "These keywords cannot be variable or type names and start a new sentence.")
+
+(defconst typescript--type-vs-ternary-re
+  (concat "[?]\\|" (typescript--regexp-opt-symbol '("as" "class" "private" "public" "readonly")))
+  "Keywords/Symbols that help tell apart colon for types vs ternary operators.")
 
 (defun typescript--search-backward-matching-angle-bracket (depth)
   "Search for matching \"<\" preceding a starting \">\". DEPTH indicates how nested we think we are."
@@ -2041,27 +2045,25 @@ This performs fontification according to `typescript--class-styles'."
   ;; be a greater-than operation.  Some symbols will make it clear that we are
   ;; *not* in a type annotation, so we can return "nil". Otherwise, we keep
   ;; *looking for the matching one.
-  (progn
-    (if (<= depth 0) t
+  (or (<= depth 0)
       (and
        ;; If we cross over a reserved start keyword, we abandon hope of finding
        ;; a matching angle bracket.  This prevents extreme recursion depths.
        (typescript--re-search-backward (concat "[<>]\\|" typescript--reserved-start-keywords-re) nil t)
-       (or
-        (when (looking-at "<") (typescript--search-backward-matching-angle-bracket (- depth 1)))
-        (when (looking-at ">") (typescript--search-backward-matching-angle-bracket (+ depth 1))))))))
+       (case (char-after)
+         (?< (typescript--search-backward-matching-angle-bracket (- depth 1)))
+         (?> (typescript--search-backward-matching-angle-bracket (+ depth 1)))
+         (otherwise nil)))))
 
-(defun typescript--re-search-backward-ignoring-angle-brackets (re)
-  "Search backward for regexp RE, jumping over text within angle brackets.
-RE should not expect to find characters \"<\" or \">\"."
-  (progn
-    (and
-     (typescript--re-search-backward (concat "[>]\\|" re) nil t)
-     (if (looking-at ">")
-         (progn
-           (typescript--search-backward-matching-angle-bracket 1)
-           (typescript--re-search-backward-ignoring-angle-brackets re))
-       t))))
+(defun typescript--re-search-backward-ignoring-angle-brackets ()
+  "Search backwards, jumping over text within angle brackets.
+Searches specifically for any of \"=\", \"}\", and \"type\"."
+  (and
+   (typescript--re-search-backward "[>=}]\\|\\_<type\\_>" nil t)
+   (or (not (looking-at ">"))
+       (and
+        (typescript--search-backward-matching-angle-bracket 1)
+        (typescript--re-search-backward-ignoring-angle-brackets)))))
 
 (defun typescript--looking-at-operator-p ()
   "Return non-nil if point is on a typescript operator, other than a comma."
@@ -2109,24 +2111,19 @@ RE should not expect to find characters \"<\" or \">\"."
                   (typescript--re-search-backward (concat "[=:]\\|" typescript--keyword-re) nil t)
                   (or
                    ;; If the previous keyword is "as", definitely a type.
-                   (when (looking-at (typescript--regexp-opt-symbol '("as"))) t)
+                   (looking-at "\\_<as\\_>")
                    ;; A colon could be either a type symbol, or a ternary
                    ;; operator, try to guess which.
-                   (when (looking-at ":")
-                     (and
-                      (typescript--re-search-backward
-                       (concat "[?]\\|" (typescript--regexp-opt-symbol '("as" "class" "private" "public" "readonly" "type")))
-                       nil t)
-                      (not (looking-at "?"))
-                      ))
+                   (and (looking-at ":")
+                        (typescript--re-search-backward typescript--type-vs-ternary-re nil t)
+                        (not (looking-at "?")))
                    ;; This final check lets us distinguish between a
                    ;; 2-argument type "t < a , b > ..." and a use of the ","
                    ;; operator between two comparisons "t < a , b > ...".
                    ;; Looking back a little more lets us guess.
-                   (when (looking-at "=")
-                     (and
-                      (typescript--re-search-backward-ignoring-angle-brackets (concat "[=}]\\|" (typescript--regexp-opt-symbol '("type"))))
-                      (when (looking-at (typescript--regexp-opt-symbol '("type"))) t))))))))
+                   (and (looking-at "=")
+                        (typescript--re-search-backward-ignoring-angle-brackets)
+                        (looking-at "\\_<type\\_>")))))))
          (not (and
                (looking-at "*")
                ;; Generator method (possibly using computed property).
