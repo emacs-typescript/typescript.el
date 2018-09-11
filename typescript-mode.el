@@ -2035,7 +2035,7 @@ This performs fontification according to `typescript--class-styles'."
   "These keywords cannot be variable or type names and start a new sentence.")
 
 (defconst typescript--type-vs-ternary-re
-  (concat "[?]\\|" (typescript--regexp-opt-symbol '("as" "class" "private" "public" "readonly")))
+  (concat "[?]\\|" (typescript--regexp-opt-symbol '("as" "class" "interface" "private" "public" "readonly")))
   "Keywords/Symbols that help tell apart colon for types vs ternary operators.")
 
 (defun typescript--search-backward-matching-angle-bracket-inner (depth)

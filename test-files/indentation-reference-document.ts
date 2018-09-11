@@ -594,6 +594,11 @@ function blipblop(): void {
         d : O<Z>
     }
 
+    interface Foo {
+        a : O<Z>
+        b : { }
+    }
+
     a = a ? a < a : a >
         a
 
