@@ -2038,22 +2038,32 @@ This performs fontification according to `typescript--class-styles'."
   (concat "[?]\\|" (typescript--regexp-opt-symbol '("as" "class" "private" "public" "readonly")))
   "Keywords/Symbols that help tell apart colon for types vs ternary operators.")
 
-(defun typescript--search-backward-matching-angle-bracket (depth)
-  "Search for matching \"<\" preceding a starting \">\". DEPTH indicates how nested we think we are."
+(defun typescript--search-backward-matching-angle-bracket-inner (depth)
+  "Auxiliary function for `typescript--search-backward-matching-angle-bracket'.
+DEPTH indicates how nested we think we are: it increases when we cross closing
+brackets, and decreases when we cross opening brackets."
   ;; We look backwards for a "<" that would correspond to the ">" we started
   ;; from.  However, there is no guarantee that it exists, since our ">" could
   ;; be a greater-than operation.  Some symbols will make it clear that we are
-  ;; *not* in a type annotation, so we can return "nil". Otherwise, we keep
-  ;; *looking for the matching one.
+  ;; *not* in a type annotation, so we can return nil.  Otherwise, we keep
+  ;; looking for the matching one.
   (or (<= depth 0)
       (and
        ;; If we cross over a reserved start keyword, we abandon hope of finding
        ;; a matching angle bracket.  This prevents extreme recursion depths.
        (typescript--re-search-backward (concat "[<>]\\|" typescript--reserved-start-keywords-re) nil t)
        (case (char-after)
-         (?< (typescript--search-backward-matching-angle-bracket (- depth 1)))
-         (?> (typescript--search-backward-matching-angle-bracket (+ depth 1)))
+         (?< (typescript--search-backward-matching-angle-bracket-inner (- depth 1)))
+         (?> (typescript--search-backward-matching-angle-bracket-inner (+ depth 1)))
          (otherwise nil)))))
+
+(defun typescript--search-backward-matching-angle-bracket ()
+  "Search for matching \"<\" preceding a starting \">\".
+DEPTH indicates how nested we think we are.  Assumes the starting position is
+right before the closing \">\".  Returns nil when a match was not found,
+otherwise returns t and the current position is right before the matching
+\"<\"."
+  (typescript--search-backward-matching-angle-bracket-inner 1))
 
 (defun typescript--re-search-backward-ignoring-angle-brackets ()
   "Search backwards, jumping over text within angle brackets.
@@ -2062,7 +2072,7 @@ Searches specifically for any of \"=\", \"}\", and \"type\"."
    (typescript--re-search-backward "[>=}]\\|\\_<type\\_>" nil t)
    (or (not (looking-at ">"))
        (and
-        (typescript--search-backward-matching-angle-bracket 1)
+        (typescript--search-backward-matching-angle-bracket)
         (typescript--re-search-backward-ignoring-angle-brackets)))))
 
 (defun typescript--looking-at-operator-p ()
@@ -2098,7 +2108,7 @@ Searches specifically for any of \"=\", \"}\", and \"type\"."
                (looking-at ">")
                (save-excursion
                  (and
-                  (typescript--search-backward-matching-angle-bracket 1)
+                  (typescript--search-backward-matching-angle-bracket)
                   ;; If we made it here, we found a candidate matching opening
                   ;; angle bracket. We still need to guess whether it actually
                   ;; is one, and not a spurious less-than operator!
