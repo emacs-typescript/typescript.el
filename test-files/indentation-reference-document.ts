@@ -617,6 +617,9 @@ function blipblop(): void {
     a = a ? a < a : a >
         a
 
+    type A = B<import('../file').T>
+    foo
+
 }
 
 container.each(x => x)

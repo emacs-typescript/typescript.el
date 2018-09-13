@@ -2031,8 +2031,10 @@ This performs fontification according to `typescript--class-styles'."
   "Regexp that matches number literals.")
 
 (defconst typescript--reserved-start-keywords-re
-  (typescript--regexp-opt-symbol '("const" "export" "function" "import" "let" "var"))
-  "These keywords cannot be variable or type names and start a new sentence.")
+  (typescript--regexp-opt-symbol '("const" "export" "function" "let" "var"))
+  "These keywords cannot be variable or type names and start a new sentence.
+Note that the \"import\" keyword can be a type import since TS2.9, so it might
+not start a sentence!")
 
 (defconst typescript--type-vs-ternary-re
   (concat "[?]\\|" (typescript--regexp-opt-symbol '("as" "class" "interface" "private" "public" "readonly")))
