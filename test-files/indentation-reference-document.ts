@@ -620,6 +620,9 @@ function blipblop(): void {
     type A = B<import('../file').T>
     foo
 
+    type A = import('../file').B<import('../file').C>
+    foo
+
 }
 
 container.each(x => x)

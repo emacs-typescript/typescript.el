@@ -2124,6 +2124,8 @@ Searches specifically for any of \"=\", \"}\", and \"type\"."
                   (or
                    ;; If the previous keyword is "as", definitely a type.
                    (looking-at "\\_<as\\_>")
+                   ;; Same goes for type imports.
+                   (looking-at "\\_<import\\_>")
                    ;; A colon could be either a type symbol, or a ternary
                    ;; operator, try to guess which.
                    (and (looking-at ":")
