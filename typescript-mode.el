@@ -2056,8 +2056,7 @@ brackets, and decreases when we cross opening brackets."
        (typescript--re-search-backward (concat "[<>]\\|" typescript--reserved-start-keywords-re) nil t)
        (case (char-after)
          (?< (typescript--search-backward-matching-angle-bracket-inner (- depth 1)))
-         (?> (typescript--search-backward-matching-angle-bracket-inner (+ depth 1)))
-         (otherwise nil)))))
+         (?> (typescript--search-backward-matching-angle-bracket-inner (+ depth 1)))))))
 
 (defun typescript--search-backward-matching-angle-bracket ()
   "Search for matching \"<\" preceding a starting \">\".
