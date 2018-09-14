@@ -627,3 +627,28 @@ function blipblop(): void {
 
 container.each(x => x)
 something() // No reason for this to be indented! (cf. issue #83)
+
+// Method calls that look like braceless keywords should not indent!
+function test() {
+    return (
+        f.catch()
+    )
+    return (
+        f.do()
+    )
+    return (
+        f.each()
+    )
+    return (
+        f.else()
+    )
+    return (
+        f.if()
+    )
+    return (
+        f.finally()
+    )
+    return (
+        f.then()
+    )
+}
