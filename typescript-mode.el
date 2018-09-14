@@ -422,7 +422,13 @@ Match group 1 is MUMBLE.")
 (defconst typescript-jsdoc-param-tag-regexp
   (concat typescript-jsdoc-before-tag-regexp
           "\\(@"
-          "\\(?:param\\|arg\\(?:ument\\)?\\|prop\\(?:erty\\)?\\)"
+          (regexp-opt
+           '("arg"
+             "argument"
+             "param"
+             "prop"
+             "property"
+             "typedef"))
           "\\)"
           "\\s-*\\({[^}]+}\\)?"         ; optional type
           "\\s-*\\[?\\([[:alnum:]_$\.]+\\)?\\]?"  ; name
@@ -446,7 +452,9 @@ Match group 1 is MUMBLE.")
              "returns"
              "throw"
              "throws"
-             "type"))
+             "type"
+             "yield"
+             "yields"))
           "\\)\\)\\s-*\\({[^}]+}\\)?")
   "Matches jsdoc tags with optional type.")
 
@@ -457,10 +465,10 @@ Match group 1 is MUMBLE.")
           (regexp-opt
            '("alias"
              "augments"
-             "borrows"
-             "callback"
-             "bug"
              "base"
+             "borrows"
+             "bug"
+             "callback"
              "config"
              "default"
              "define"
@@ -472,6 +480,7 @@ Match group 1 is MUMBLE.")
              "member"
              "memberOf"
              "method"
+             "module"
              "name"
              "namespace"
              "since"
