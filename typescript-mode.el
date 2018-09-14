@@ -2030,6 +2030,52 @@ This performs fontification according to `typescript--class-styles'."
   "\\(?:NaN\\|-?\\(?:0[Bb][01]+\\|0[Oo][0-7]+\\|0[Xx][0-9a-fA-F]+\\|Infinity\\|\\(?:[[:digit:]]*\\.[[:digit:]]+\\|[[:digit:]]+\\)\\(?:[Ee][+-]?[[:digit:]]+\\)?\\)\\)"
   "Regexp that matches number literals.")
 
+(defconst typescript--reserved-start-keywords-re
+  (typescript--regexp-opt-symbol '("const" "export" "function" "let" "var"))
+  "These keywords cannot be variable or type names and start a new sentence.
+Note that the \"import\" keyword can be a type import since TS2.9, so it might
+not start a sentence!")
+
+(defconst typescript--type-vs-ternary-re
+  (concat "[?]\\|" (typescript--regexp-opt-symbol '("as" "class" "interface" "private" "public" "readonly")))
+  "Keywords/Symbols that help tell apart colon for types vs ternary operators.")
+
+(defun typescript--search-backward-matching-angle-bracket-inner (depth)
+  "Auxiliary function for `typescript--search-backward-matching-angle-bracket'.
+DEPTH indicates how nested we think we are: it increases when we cross closing
+brackets, and decreases when we cross opening brackets."
+  ;; We look backwards for a "<" that would correspond to the ">" we started
+  ;; from.  However, there is no guarantee that it exists, since our ">" could
+  ;; be a greater-than operation.  Some symbols will make it clear that we are
+  ;; *not* in a type annotation, so we can return nil.  Otherwise, we keep
+  ;; looking for the matching one.
+  (or (<= depth 0)
+      (and
+       ;; If we cross over a reserved start keyword, we abandon hope of finding
+       ;; a matching angle bracket.  This prevents extreme recursion depths.
+       (typescript--re-search-backward (concat "[<>]\\|" typescript--reserved-start-keywords-re) nil t)
+       (case (char-after)
+         (?< (typescript--search-backward-matching-angle-bracket-inner (- depth 1)))
+         (?> (typescript--search-backward-matching-angle-bracket-inner (+ depth 1)))))))
+
+(defun typescript--search-backward-matching-angle-bracket ()
+  "Search for matching \"<\" preceding a starting \">\".
+DEPTH indicates how nested we think we are.  Assumes the starting position is
+right before the closing \">\".  Returns nil when a match was not found,
+otherwise returns t and the current position is right before the matching
+\"<\"."
+  (typescript--search-backward-matching-angle-bracket-inner 1))
+
+(defun typescript--re-search-backward-ignoring-angle-brackets ()
+  "Search backwards, jumping over text within angle brackets.
+Searches specifically for any of \"=\", \"}\", and \"type\"."
+  (and
+   (typescript--re-search-backward "[>=}]\\|\\_<type\\_>" nil t)
+   (or (not (looking-at ">"))
+       (and
+        (typescript--search-backward-matching-angle-bracket)
+        (typescript--re-search-backward-ignoring-angle-brackets)))))
+
 (defun typescript--looking-at-operator-p ()
   "Return non-nil if point is on a typescript operator, other than a comma."
   (save-match-data
@@ -2055,6 +2101,42 @@ This performs fontification according to `typescript--class-styles'."
                (save-excursion
                  (typescript--backward-syntactic-ws)
                  (memq (char-before) '(?, ?{ ?} ?\;)))))
+         ;; Do not identify the symbol > if it is likely part of a type argument
+         ;; T<A>, but identify it if it is likely a greater-than symbol. This is
+         ;; a hard problem in the absence of semicolons, see:
+         ;; https://github.com/ananthakumaran/typescript.el/issues/81
+         (not (and
+               (looking-at ">")
+               (save-excursion
+                 (and
+                  (typescript--search-backward-matching-angle-bracket)
+                  ;; If we made it here, we found a candidate matching opening
+                  ;; angle bracket. We still need to guess whether it actually
+                  ;; is one, and not a spurious less-than operator!
+
+                  ;; Look backwards for the first of:
+                  ;; - one of the symbols: = :
+                  ;; - or a TypeScript keyword
+                  ;; Depending on what comes first, we can make an educated
+                  ;; guess on the nature of our ">" of interest.
+                  (typescript--re-search-backward (concat "[=:]\\|" typescript--keyword-re) nil t)
+                  (or
+                   ;; If the previous keyword is "as", definitely a type.
+                   (looking-at "\\_<as\\_>")
+                   ;; Same goes for type imports.
+                   (looking-at "\\_<import\\_>")
+                   ;; A colon could be either a type symbol, or a ternary
+                   ;; operator, try to guess which.
+                   (and (looking-at ":")
+                        (typescript--re-search-backward typescript--type-vs-ternary-re nil t)
+                        (not (looking-at "?")))
+                   ;; This final check lets us distinguish between a
+                   ;; 2-argument type "t < a , b > ..." and a use of the ","
+                   ;; operator between two comparisons "t < a , b > ...".
+                   ;; Looking back a little more lets us guess.
+                   (and (looking-at "=")
+                        (typescript--re-search-backward-ignoring-angle-brackets)
+                        (looking-at "\\_<type\\_>")))))))
          (not (and
                (looking-at "*")
                ;; Generator method (possibly using computed property).

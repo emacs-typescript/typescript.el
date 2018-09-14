@@ -496,5 +496,134 @@ function blipblop(): void {
     }
 }
 
+// The following section deals with distinguishing the purpose of the symbol >
+// when it appears at the end of a line.
+// cf. https://github.com/ananthakumaran/typescript.el/issues/81
+{
+
+    var a, b, c, d, e, f, l, o, t, x, z
+    type z      = {} // Zero argument
+    type o<A>   = {} // One  argument
+    type t<A,B> = {} // Two  arguments
+
+    // greater-than operator
+    x = b >
+        c
+    // looks like a<b,c> but is greater-than operator
+    x = t < z , z >
+        f()
+    // looks almost the same but this time, it's a type
+    type x = t < z , z >
+    f()
+    // looks almost the same but this time, it's a type
+    x = a as t < z , z >
+    f()
+    // tricky, this is greater-than, because "number" is a keyword
+    a = b as number < z , z >
+        f()
+
+    // Next one is ambiguous! It could be read as:
+    // (b as t) < z, z > f()
+    // or
+    // b as (t < z , z >) \n f()
+    // It turns out that when t is not a keyword, TypeScript always chooses the
+    // latter, and complains if you attempted the former
+    a = b as t < z , z >
+    f()
+
+    l = [
+        // operator at end of line
+        a >
+            b,
+        // operator alone on line
+        a
+            >
+            b,
+        // end of 1st line is type argument, 2nd is operator
+        a as b < c , d >
+            >
+            d
+    ]
+
+    // properly-closed parameterized type, followed by operator
+    g = a as o < z > >
+        b
+
+    // Good case
+    class Q<X> {
+        q: string = "a"
+    }
+
+    type a<X> =
+        Q<X>
+    const blah = 1
+
+    // Problem cases
+    interface Something {
+        a: string;
+        b: string;
+        c: -5;
+    }
+
+    class Fluff<X extends Something> {
+    }
+
+    // Example of = and - in a type parameter.
+    type c<X extends Something = { a: string; b: string; c: -5; more: string }>
+        = Fluff<X>
+    const moo = 1
+
+    // Example of + in a type parameter.
+    type d<X extends Something = { +readonly [P in keyof Something]: Something[P] }>
+        = Fluff<X>
+    const moo2 = 1
+
+    class Foo {
+        a : O<Z>
+        public readonly a : O<Z>
+        public b : O<Z>
+        private c : O<Z>
+        private d : O<Z>
+    }
+
+    type Foo {
+        readonly a : O<Z>
+        b : O<Z>
+        readonly b : O<Z>
+        c : { }
+        d : O<Z>
+    }
+
+    interface Foo {
+        a : O<Z>
+        b : { }
+    }
+
+    a = a ? a < a : a >
+        a
+
+    a = a ? a : a < a || a >
+        a
+
+    a = a ? a < a : a >
+        a
+    // ^ This test is the same as two above, but a bad guess could answer differently.
+
+    type Foo { }
+    a = a ? a < a : a >
+        a
+
+    class Foo { }
+    a = a ? a < a : a >
+        a
+
+    type A = B<import('../file').T>
+    foo
+
+    type A = import('../file').B<import('../file').C>
+    foo
+
+}
+
 container.each(x => x)
 something() // No reason for this to be indented! (cf. issue #83)
