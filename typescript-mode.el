@@ -436,6 +436,7 @@ Match group 1 is MUMBLE.")
   "Matches jsdoc tags with optional type and optional param name.")
 
 ;; This was taken from js2-mode.
+;; and extended with tags in http://usejsdoc.org/
 (defconst typescript-jsdoc-typed-tag-regexp
   (concat typescript-jsdoc-before-tag-regexp
           "\\(@\\(?:"
@@ -459,11 +460,13 @@ Match group 1 is MUMBLE.")
   "Matches jsdoc tags with optional type.")
 
 ;; This was taken from js2-mode.
+;; and extended with tags in http://usejsdoc.org/
 (defconst typescript-jsdoc-arg-tag-regexp
   (concat typescript-jsdoc-before-tag-regexp
           "\\(@\\(?:"
           (regexp-opt
-           '("alias"
+           '("access"
+             "alias"
              "augments"
              "base"
              "borrows"
@@ -474,36 +477,51 @@ Match group 1 is MUMBLE.")
              "define"
              "emits"
              "exception"
+             "extends"
+             "external"
              "fires"
              "func"
              "function"
+             "host"
+             "kind"
+             "listens"
              "member"
-             "memberOf"
+             "memberof"
              "method"
+             "mixes"
              "module"
              "name"
              "namespace"
+             "requires"
              "since"
              "suppress"
              "this"
              "throws"
+             "var"
+             "variation"
              "version"))
           "\\)\\)\\s-+\\([^ \t]+\\)")
   "Matches jsdoc tags with a single argument.")
 
-;; This was taken from js2-mode.
+;; This was taken from js2-mode
+;; and extended with tags in http://usejsdoc.org/
 (defconst typescript-jsdoc-empty-tag-regexp
   (concat typescript-jsdoc-before-tag-regexp
           "\\(@\\(?:"
           (regexp-opt
-           '("addon"
+           '("abstract"
+             "addon"
+             "async"
              "author"
              "class"
+             "classdesc"
              "const"
              "constant"
              "constructor"
              "constructs"
              "copyright"
+             "default"
+             "defaultvalue"
              "deprecated"
              "desc"
              "description"
@@ -511,31 +529,44 @@ Match group 1 is MUMBLE.")
              "example"
              "exec"
              "export"
+             "exports"
+             "file"
              "fileoverview"
              "final"
              "func"
              "function"
+             "generator"
+             "global"
              "hidden"
+             "hideconstructor"
              "ignore"
-             "implicitCast"
-             "inheritDoc"
+             "implicitcast"
+             "inheritdoc"
              "inner"
+             "instance"
              "interface"
              "license"
              "method"
+             "mixin"
              "noalias"
              "noshadow"
              "notypecheck"
              "override"
+             "overview"
              "owner"
+             "package"
              "preserve"
-             "preserveTry"
+             "preservetry"
              "private"
              "protected"
              "public"
+             "readonly"
              "static"
+             "summary"
              "supported"
-             ))
+             "todo"
+             "tutorial"
+             "virtual"))
           "\\)\\)\\s-*")
   "Matches empty jsdoc tags.")
 
