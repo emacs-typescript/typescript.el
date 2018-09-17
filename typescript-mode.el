@@ -439,7 +439,7 @@ Match group 1 is MUMBLE.")
 ;; and extended with tags in http://usejsdoc.org/
 (defconst typescript-jsdoc-typed-tag-regexp
   (concat typescript-jsdoc-before-tag-regexp
-          "\\(@\\(?:"
+          "\\(@"
           (regexp-opt
            '("enum"
              "extends"
@@ -456,14 +456,14 @@ Match group 1 is MUMBLE.")
              "type"
              "yield"
              "yields"))
-          "\\)\\)\\s-*\\({[^}]+}\\)?")
+          "\\)\\s-*\\({[^}]+}\\)?")
   "Matches jsdoc tags with optional type.")
 
 ;; This was taken from js2-mode.
 ;; and extended with tags in http://usejsdoc.org/
 (defconst typescript-jsdoc-arg-tag-regexp
   (concat typescript-jsdoc-before-tag-regexp
-          "\\(@\\(?:"
+          "\\(@"
           (regexp-opt
            '("access"
              "alias"
@@ -500,14 +500,14 @@ Match group 1 is MUMBLE.")
              "var"
              "variation"
              "version"))
-          "\\)\\)\\s-+\\([^ \t]+\\)")
+          "\\)\\s-+\\([^ \t]+\\)")
   "Matches jsdoc tags with a single argument.")
 
 ;; This was taken from js2-mode
 ;; and extended with tags in http://usejsdoc.org/
 (defconst typescript-jsdoc-empty-tag-regexp
   (concat typescript-jsdoc-before-tag-regexp
-          "\\(@\\(?:"
+          "\\(@"
           (regexp-opt
            '("abstract"
              "addon"
@@ -567,7 +567,7 @@ Match group 1 is MUMBLE.")
              "todo"
              "tutorial"
              "virtual"))
-          "\\)\\)\\s-*")
+          "\\)\\s-*")
   "Matches empty jsdoc tags.")
 
 ;; Note that this regexp by itself would match tslint flags that appear inside
