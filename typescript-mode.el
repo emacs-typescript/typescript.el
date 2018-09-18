@@ -2250,7 +2250,10 @@ nil."
                    (when (= (char-before) ?\)) (backward-list))
                    (skip-syntax-backward " ")
                    (skip-syntax-backward "w_")
-                   (looking-at typescript--possibly-braceless-keyword-re))
+                   (and
+                    (looking-at typescript--possibly-braceless-keyword-re)
+                    ;; If preceded by period, it's a method call.
+                    (not (= (char-before) ?.))))
                  (not (typescript--end-of-do-while-loop-p))))
       (save-excursion
         (goto-char (match-beginning 0))
