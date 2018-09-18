@@ -1966,10 +1966,17 @@ This performs fontification according to `typescript--class-styles'."
         return t
         else do (goto-char orig-end)))
 
+(defconst typescript--function-call-re "\\(\\w+\\)\s*(")
+(defconst typescript--font-lock-keywords-4
+  (append typescript--font-lock-keywords-3
+          (list (list typescript--function-call-re 1 font-lock-function-name-face)))
+  "Level four stuff.")
+
 (defconst typescript--font-lock-keywords
-  '(typescript--font-lock-keywords-3 typescript--font-lock-keywords-1
+  '(typescript--font-lock-keywords-4 typescript--font-lock-keywords-1
                                    typescript--font-lock-keywords-2
-                                   typescript--font-lock-keywords-3)
+                                   typescript--font-lock-keywords-3
+                                   typescript--font-lock-keywords-4)
   "Font lock keywords for `typescript-mode'.  See `font-lock-keywords'.")
 
 ;;; Propertize
