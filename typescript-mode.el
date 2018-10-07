@@ -270,19 +270,22 @@ Match group 1 is MUMBLE.")
   (typescript--regexp-opt-symbol
    '("abstract" "any" "as" "async" "await" "boolean" "bigint" "break" "case" "catch" "class" "const"
      "constructor" "continue" "declare" "default" "delete" "do" "else"
-     "enum" "export" "extends" "extern" "finally" "for"
-     "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
-     "interface" "keyof" "let" "module" "namespace" "new" "of"
-     "private" "protected" "public" "readonly" "return" "set" "static"
-     "super" "switch" "throw" "true"
-     "try" "type" "typeof" "unknown" "var"
-     "while"))                  ; yield is handled separately
+     "enum" "export" "extern" "finally" "for" "function" "from" "get"
+     "goto" "if" "implements" "import" "in" "instanceof" "interface" "keyof"
+     "let" "module" "namespace" "new" "of" "return" "set" "super" "switch"
+     "throw" "true" "try" "type" "typeof" "unknown" "var"
+     "while")) ; yield is handled separately
   "Regexp matching any typescript keyword.")
 
 (defconst typescript--basic-type-re
   (typescript--regexp-opt-symbol
    '("any" "bool" "boolean" "bigint" "never" "number" "string" "unknown" "void"))
   "Regular expression matching any predefined type in typescript.")
+
+(defconst typescript--access-modifier-re
+  (typescript--regexp-opt-symbol
+   '("private" "protected" "public" "readonly" "static" "extends" "implements"))
+  "Regular expression matching access modifiers.")
 
 (defconst typescript--type-hint-re
    (concat "\\:\\s-+" "\\(" typescript--name-re "\\)")
@@ -292,8 +295,12 @@ Match group 1 is MUMBLE.")
   (typescript--regexp-opt-symbol '("false" "null" "undefined"
                                  "Infinity" "NaN"
                                  "true" "arguments"))
-  "Regular expression matching any future reserved words in typescript.")
+  "Regular expression matching constant values.")
 
+(defconst typescript--builtin-re
+  (typescript--regexp-opt-symbol
+   '("console"))
+  "Regular expression matching builtin stuff.")
 
 (defconst typescript--font-lock-keywords-1
   (list
@@ -309,7 +316,9 @@ Match group 1 is MUMBLE.")
                       "\\s-+\\(each\\)\\_>" nil nil
                       (list 1 'font-lock-keyword-face))
                 (cons "\\_<yield\\(\\*\\|\\_>\\)" 'font-lock-keyword-face)
+                (cons typescript--access-modifier-re ''typescript-access-modifier-face)
                 (cons typescript--basic-type-re font-lock-builtin-face)
+                (cons typescript--builtin-re font-lock-type-face)
                 (list typescript--type-hint-re 1 font-lock-type-face)
                 (cons typescript--constant-re font-lock-variable-name-face)))
   "Level two font lock keywords for `typescript-mode'.")
@@ -604,6 +613,11 @@ Match group 1 is MUMBLE.")
   :group 'typescript)
 
 (defface typescript-this-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face used to highlight 'this' keyword."
+  :group 'typescript)
+
+(defface typescript-access-modifier-face
   '((t (:inherit font-lock-keyword-face)))
   "Face used to highlight 'this' keyword."
   :group 'typescript)
