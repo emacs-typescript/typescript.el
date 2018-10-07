@@ -1851,7 +1851,7 @@ and searches for the next token to be highlighted."
     ;; formal parameters
     ,(list
       (concat
-       "\\_<function\\_>\\(\\s-+" typescript--name-re "\\)?\\s-*(\\s-*"
+       "\\_<function\\_>\\|=\\(\\s-+" typescript--name-re "\\)?\\s-*(\\s-*"
        typescript--name-start-re)
       (list (concat "\\(" typescript--name-re "\\)\\(\\s-*).*\\)?")
             '(backward-char)
