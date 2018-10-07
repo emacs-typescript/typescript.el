@@ -1839,9 +1839,9 @@ and searches for the next token to be highlighted."
      (1 font-lock-type-face))
 
     ;; variable declarations
-    ,(list
-      (concat "\\_<\\(const\\|var\\|let\\)\\_>\\|" typescript--basic-type-re)
-      (list #'typescript--variable-decl-matcher nil nil nil))
+    ;; ,(list
+    ;;   (concat "\\_<\\(const\\|var\\|let\\)\\_>\\|" typescript--basic-type-re)
+    ;;   (list #'typescript--variable-decl-matcher nil nil nil))
 
     ;; class instantiation
     ,(list
