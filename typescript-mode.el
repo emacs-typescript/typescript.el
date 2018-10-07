@@ -264,12 +264,12 @@ Match group 1 is MUMBLE.")
   (typescript--regexp-opt-symbol
    '("abstract" "any" "as" "async" "await" "boolean" "bigint" "break" "case" "catch" "class" "const"
      "constructor" "continue" "declare" "default" "delete" "do" "else"
-     "enum" "export" "extends" "extern" "false" "finally" "for"
+     "enum" "export" "extends" "extern" "finally" "for"
      "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
-     "interface" "keyof" "let" "module" "namespace" "never" "new" "null" "number" "object" "of"
-     "private" "protected" "public" "readonly" "return" "set" "static" "string"
+     "interface" "keyof" "let" "module" "namespace" "new" "of"
+     "private" "protected" "public" "readonly" "return" "set" "static"
      "super" "switch"  "this" "throw" "true"
-     "try" "type" "typeof" "unknown" "var" "void"
+     "try" "type" "typeof" "unknown" "var"
      "while"))                  ; yield is handled separately
   "Regexp matching any typescript keyword.")
 
@@ -281,7 +281,7 @@ Match group 1 is MUMBLE.")
 (defconst typescript--constant-re
   (typescript--regexp-opt-symbol '("false" "null" "undefined"
                                  "Infinity" "NaN"
-                                 "true" "arguments" "this"))
+                                 "true" "arguments"))
   "Regular expression matching any future reserved words in typescript.")
 
 
@@ -299,8 +299,8 @@ Match group 1 is MUMBLE.")
                       "\\s-+\\(each\\)\\_>" nil nil
                       (list 1 'font-lock-keyword-face))
                 (cons "\\_<yield\\(\\*\\|\\_>\\)" 'font-lock-keyword-face)
-                (cons typescript--basic-type-re font-lock-type-face)
-                (cons typescript--constant-re font-lock-constant-face)))
+                (cons typescript--basic-type-re font-lock-builtin-face)
+                (cons typescript--constant-re font-lock-type-face)))
   "Level two font lock keywords for `typescript-mode'.")
 
 ;; typescript--pitem is the basic building block of the lexical
