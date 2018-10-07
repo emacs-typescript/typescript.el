@@ -77,6 +77,12 @@
   (concat typescript--name-re "\\(?:\\." typescript--name-re "\\)*")
   "Regexp matching a dot-separated sequence of typescript names.")
 
+(defconst typescript--this-re "\\(this\\)\\_>"
+  "Regexp matching the `this' keyword.")
+
+(defconst typescript--arrow-re "=>"
+  "Regexp matching the arrow operator.")
+
 (defconst typescript--plain-method-re
   (concat "^\\s-*?\\(" typescript--dotted-name-re "\\)\\.prototype"
           "\\.\\(" typescript--name-re "\\)\\s-*?=\\s-*?\\(function\\)\\_>")
@@ -268,7 +274,7 @@ Match group 1 is MUMBLE.")
      "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
      "interface" "keyof" "let" "module" "namespace" "new" "of"
      "private" "protected" "public" "readonly" "return" "set" "static"
-     "super" "switch"  "this" "throw" "true"
+     "super" "switch" "throw" "true"
      "try" "type" "typeof" "unknown" "var"
      "while"))                  ; yield is handled separately
   "Regexp matching any typescript keyword.")
@@ -590,6 +596,11 @@ Match group 1 is MUMBLE.")
 (defface typescript-jsdoc-value
   '((t :foreground "gold4"))
   "Face used to highlight tag values in jsdoc comments."
+  :group 'typescript)
+
+(defface typescript-this-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face used to highlight 'this' keyword."
   :group 'typescript)
 
 ;;; User Customization
@@ -1969,7 +1980,10 @@ This performs fontification according to `typescript--class-styles'."
 (defconst typescript--function-call-re "\\(\\w+\\)\s*(")
 (defconst typescript--font-lock-keywords-4
   (append typescript--font-lock-keywords-3
-          (list (list typescript--function-call-re 1 font-lock-function-name-face)))
+    (list
+      (list typescript--function-call-re 1 font-lock-function-name-face)
+      (cons typescript--this-re ''typescript-this-face)
+      (cons typescript--arrow-re font-lock-keyword-face)))
   "Level four stuff.")
 
 (defconst typescript--font-lock-keywords
