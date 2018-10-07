@@ -284,6 +284,10 @@ Match group 1 is MUMBLE.")
    '("any" "bool" "boolean" "bigint" "never" "number" "string" "unknown" "void"))
   "Regular expression matching any predefined type in typescript.")
 
+(defconst typescript--type-hint-re
+   (concat "\\:\\s-+" "\\(" typescript--name-re "\\)")
+   "Regular expression matching type hints that follow the `:' operator.")
+
 (defconst typescript--constant-re
   (typescript--regexp-opt-symbol '("false" "null" "undefined"
                                  "Infinity" "NaN"
@@ -306,7 +310,8 @@ Match group 1 is MUMBLE.")
                       (list 1 'font-lock-keyword-face))
                 (cons "\\_<yield\\(\\*\\|\\_>\\)" 'font-lock-keyword-face)
                 (cons typescript--basic-type-re font-lock-builtin-face)
-                (cons typescript--constant-re font-lock-type-face)))
+                (list typescript--type-hint-re 1 font-lock-type-face)
+                (cons typescript--constant-re font-lock-variable-name-face)))
   "Level two font lock keywords for `typescript-mode'.")
 
 ;; typescript--pitem is the basic building block of the lexical
