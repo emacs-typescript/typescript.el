@@ -267,7 +267,7 @@ Match group 1 is MUMBLE.")
      "constructor" "continue" "declare" "default" "delete" "do" "else"
      "enum" "export" "extends" "extern" "false" "finally" "for"
      "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
-     "interface" "keyof" "let" "module" "namespace" "new" "null" "number" "object" "of"
+     "interface" "keyof" "let" "module" "namespace" "never" "new" "null" "number" "object" "of"
      "private" "protected" "public" "readonly" "return" "set" "static" "string"
      "super" "switch"  "this" "throw" "true"
      "try" "type" "typeof" "unknown" "var" "void"
@@ -276,7 +276,7 @@ Match group 1 is MUMBLE.")
 
 (defconst typescript--basic-type-re
   (typescript--regexp-opt-symbol
-   '("bool" "boolean" "string" "number" "any" "unknown" "void"))
+   '("any" "bool" "boolean" "never" "number" "string" "unknown" "void"))
   "Regular expression matching any predefined type in typescript.")
 
 (defconst typescript--constant-re
