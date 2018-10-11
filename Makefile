@@ -1,5 +1,8 @@
 EMACS=$(shell which emacs) -Q -batch -L .
-ELS = typescript-mode.el typescript-mode-tests.el
+ELS = \
+  typescript-mode.el \
+  typescript-mode-tests.el \
+  typescript-mode-test-utilities.el
 ELCS = $(ELS:.el=.elc)
 
 clean:
