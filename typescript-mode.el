@@ -605,6 +605,7 @@ Match group 1 is MUMBLE.")
   :type 'integer
   :safe 'integerp
   :group 'typescript)
+;;;###autoload(put 'typescript-indent-level 'safe-local-variable #'integerp)
 
 (defcustom typescript-expr-indent-offset 0
   "Number of additional spaces used for indentation of continued expressions.
