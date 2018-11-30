@@ -84,6 +84,12 @@
 Group 1 is a (possibly-dotted) class name, group 2 is a method name,
 and group 3 is the 'function' keyword.")
 
+(defconst typescript--method-re
+  (concat "\\([[]?[a-zA-Z,_0-9]+[]]?\\)"
+          "[.]\\([a-zA-Z_0-9]+\\)"
+          "([\0-\377[:nonascii:]]*")
+  "Regexp matching method calls. Group 2 should be highlighted.")
+
 (defconst typescript--plain-class-re
   (concat "^\\s-*\\(" typescript--dotted-name-re "\\)\\.prototype"
           "\\s-*=\\s-*{")
