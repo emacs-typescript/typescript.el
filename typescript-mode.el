@@ -263,7 +263,7 @@ Match group 1 is MUMBLE.")
 
 (defconst typescript--keyword-re
   (typescript--regexp-opt-symbol
-   '("abstract" "any" "as" "async" "await" "boolean" "break" "case" "catch" "class" "const"
+   '("abstract" "any" "as" "async" "await" "boolean" "bigint" "break" "case" "catch" "class" "const"
      "constructor" "continue" "declare" "default" "delete" "do" "else"
      "enum" "export" "extends" "extern" "false" "finally" "for"
      "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
@@ -276,7 +276,7 @@ Match group 1 is MUMBLE.")
 
 (defconst typescript--basic-type-re
   (typescript--regexp-opt-symbol
-   '("any" "bool" "boolean" "never" "number" "string" "unknown" "void"))
+   '("any" "bool" "boolean" "bigint" "never" "number" "string" "unknown" "void"))
   "Regular expression matching any predefined type in typescript.")
 
 (defconst typescript--constant-re
