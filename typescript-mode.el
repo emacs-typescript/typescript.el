@@ -1749,8 +1749,8 @@ and searches for the next token to be highlighted."
     (,(rx symbol-start "extends" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
      (1 font-lock-type-face))
 
-    (,(rx symbol-start "implements" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
-     (1 font-lock-type-face))
+    (,(rx symbol-start "implements" (+ space))
+     (,(rx symbol-start (+ (syntax word))) nil nil (0 font-lock-type-face)))
 
     (,(rx symbol-start "interface" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
      (1 font-lock-type-face))
