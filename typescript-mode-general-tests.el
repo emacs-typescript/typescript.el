@@ -358,6 +358,7 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
     (should (eq (get-face-at "Foo") 'font-lock-type-face))
     (should (eq (get-face-at "Bar") 'font-lock-type-face))
     (should (eq (get-face-at "Qux") 'font-lock-type-face))
+    (should (eq (get-face-at ",") 'nil))
     (should (eq (get-face-at "Ajx") 'font-lock-type-face))
     )
   ;; Ensure we require symbol boundaries.
