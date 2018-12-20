@@ -354,13 +354,26 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
   "Type names should be highlighted in definitions."
   ;; Typical case.
   (test-with-fontified-buffer
+      "export class Foo extends Bar implements Qux {}"
+    (should (eq (get-face-at "Foo") 'font-lock-type-face))
+    (should (eq (get-face-at "Bar") 'font-lock-type-face))
+    (should (eq (get-face-at "Qux") 'font-lock-type-face)))
+  (test-with-fontified-buffer
       "export class Foo extends Bar implements Qux, Ajx {}"
     (should (eq (get-face-at "Foo") 'font-lock-type-face))
     (should (eq (get-face-at "Bar") 'font-lock-type-face))
     (should (eq (get-face-at "Qux") 'font-lock-type-face))
     (should (eq (get-face-at ",") 'nil))
+    (should (eq (get-face-at "Ajx") 'font-lock-type-face)))
+  (test-with-fontified-buffer
+      "export class Foo extends Bar implements Qux, Ajx, Psd {}"
+    (should (eq (get-face-at "Foo") 'font-lock-type-face))
+    (should (eq (get-face-at "Bar") 'font-lock-type-face))
+    (should (eq (get-face-at "Qux") 'font-lock-type-face))
+    (should (eq (get-face-at ",") 'nil))
     (should (eq (get-face-at "Ajx") 'font-lock-type-face))
-    )
+    (should (eq (get-face-at ",") 'nil))
+    (should (eq (get-face-at "Psd") 'font-lock-type-face)))
   ;; Ensure we require symbol boundaries.
   (test-with-fontified-buffer
       "Notclass Foo"
