@@ -23,7 +23,7 @@
 ;; URL: http://github.com/ananthakumaran/typescript.el
 ;; Version: 0.1
 ;; Keywords: typescript languages
-;; Package-Requires: ()
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
 
