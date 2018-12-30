@@ -27,7 +27,7 @@ You can add any other customization you like to `typescript-mode-hook`
 in your `init.el` file. `typescript.el` also handles `prog-mode-hook`
 on versions of Emacs which supports it.
 
-# Support for Complation Mode
+# Support for Compilation Mode
 
 This mode automatically adds support for `compilation-mode` so that if
 you run `M-x compile<ret>tsc<ret>` the error messages are correctly
