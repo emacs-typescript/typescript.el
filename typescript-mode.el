@@ -266,7 +266,7 @@ Match group 1 is MUMBLE.")
      "constructor" "continue" "declare" "default" "delete" "do" "else"
      "enum" "export" "extends" "extern" "false" "finally" "for"
      "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
-     "interface" "keyof" "let" "module" "namespace" "never" "new" "null" "number" "object" "of"
+     "interface" "keyof" "let" "module" "namespace" "never" "new" "not" "null" "number" "object" "of"
      "private" "protected" "public" "readonly" "return" "set" "static" "string"
      "super" "switch"  "this" "throw" "true"
      "try" "type" "typeof" "unknown" "var" "void"
