@@ -989,13 +989,13 @@ one at the end of the line with \"let a\"."
 This function doesn't move over expressions continued across
 lines."
   (loop
-   ;; non-continued case; simplistic, but good enough?
-   do (loop until (or (eolp)
-                      (progn
-                        (forward-comment most-positive-fixnum)
-                        (memq (char-after) '(?\, ?\; ?\] ?\) ?\}))))
-            do (forward-sexp))
-
+   do (progn
+        (forward-comment most-positive-fixnum)
+        (loop until (or (eolp)
+                        (progn
+                          (forward-comment most-positive-fixnum)
+                          (memq (char-after) '(?\, ?\; ?\] ?\) ?\}))))
+              do (forward-sexp)))
    while (and (eq (char-after) ?\n)
               (save-excursion
                 (forward-char)

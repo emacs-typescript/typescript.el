@@ -183,6 +183,43 @@ a severity set to WARNING, no rule name."
     ;; completing and not locking up is test-success!
     ))
 
+(ert-deftest typescript--forward-expression-on-multiline-indented-string ()
+  "Testcase for https://github.com/emacs-typescript/typescript.el/issues/105"
+
+  (with-temp-buffer
+    (typescript-mode)
+
+    (insert
+"fetch('http://localhost:8529/_db/_system/land', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+  body: JSON.stringify({
+    query: `{
+      query GetElement {
+        element(id: \"0000\") {
+          collection
+          id
+          name
+          description
+        }
+      }
+    }`,
+  }),
+})
+  .then(r => r.json())
+  .then(data => console.log('data returned:', data));")
+
+    (goto-char (point-min))
+    (typescript--forward-expression)
+    ;; completing and not locking up is test-success!
+    ;; Should there be a time-out? Or it is handled by external tool?
+
+    ;; Check that `typescript--forward-expression' jumped to the right position.
+    (should (= 434 (point)))))
+
 (defun test-re-search (searchee contents offset)
   (with-temp-buffer
     (typescript-mode)
