@@ -2070,14 +2070,20 @@ This performs fontification according to `typescript--class-styles'."
   "\\(?:NaN\\|-?\\(?:0[Bb][01]+\\|0[Oo][0-7]+\\|0[Xx][0-9a-fA-F]+\\|Infinity\\|\\(?:[[:digit:]]*\\.[[:digit:]]+\\|[[:digit:]]+\\)\\(?:[Ee][+-]?[[:digit:]]+\\)?\\)\\)"
   "Regexp that matches number literals.")
 
-(defconst typescript--reserved-start-keywords-re
-  (typescript--regexp-opt-symbol '("const" "export" "function" "let" "var"))
+(defconst typescript--reserved-start-keywords
+  '("const" "export" "function" "let" "var")
   "These keywords cannot be variable or type names and start a new sentence.
 Note that the \"import\" keyword can be a type import since TS2.9, so it might
 not start a sentence!")
 
+(defconst typescript--reserved-start-keywords-re
+  (typescript--regexp-opt-symbol '("const" "export" "function" "let" "var"))
+  "A regular expression matching `typescript--reserved-start-keywords'.")
+
 (defconst typescript--type-vs-ternary-re
-  (concat "[?]\\|" (typescript--regexp-opt-symbol '("as" "class" "interface" "private" "public" "readonly")))
+  (concat "[?]\\|" (typescript--regexp-opt-symbol
+                    (append typescript--reserved-start-keywords
+                            '("as" "class" "interface" "private" "public" "readonly"))))
   "Keywords/Symbols that help tell apart colon for types vs ternary operators.")
 
 (defun typescript--search-backward-matching-angle-bracket-inner (depth)
