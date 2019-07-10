@@ -652,3 +652,14 @@ function test() {
         f.then()
     )
 }
+
+// https://github.com/emacs-typescript/typescript.el/issues/107
+let $img: JQuery<HTMLImageElement>
+if (variable != null) {
+    //
+}
+
+let $img2: JQuery<HTMLImageElement> = null
+if (variable != null) {
+    //
+}
