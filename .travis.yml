@@ -3,6 +3,7 @@ sudo: false
 before_install:
   - curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > x.sh && source ./x.sh
   - evm install $EVM_EMACS --use --skip
+  - emacs --version
   - cask
 
 env:
@@ -19,5 +20,4 @@ matrix:
     - env: EVM_EMACS=emacs-git-snapshot-travis
 
 script:
-  - emacs --version
   - make test
