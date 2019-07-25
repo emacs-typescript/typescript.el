@@ -300,7 +300,10 @@ Match group 1 is MUMBLE.")
 (defconst typescript--builtin-re
   (typescript--regexp-opt-symbol
    '("console"))
-  "Regular expression matching builtin stuff.")
+  "Regular expression matching builtins.")
+
+(defconst typescript--function-call-re "\\(\\w+\\)\s*("
+  "Regular expression matching function calls.")
 
 (defconst typescript--font-lock-keywords-1
   (list
@@ -619,7 +622,7 @@ Match group 1 is MUMBLE.")
 
 (defface typescript-access-modifier-face
   '((t (:inherit font-lock-keyword-face)))
-  "Face used to highlight 'this' keyword."
+  "Face used to highlight access modifiers."
   :group 'typescript)
 
 ;;; User Customization
@@ -1853,9 +1856,9 @@ and searches for the next token to be highlighted."
      (1 font-lock-type-face))
 
     ;; variable declarations
-    ;; ,(list
-    ;;   (concat "\\_<\\(const\\|var\\|let\\)\\_>\\|" typescript--basic-type-re)
-    ;;   (list #'typescript--variable-decl-matcher nil nil nil))
+    ,(list
+      (concat "\\_<\\(const\\|var\\|let\\)\\_>\\|" typescript--basic-type-re)
+      (list #'typescript--variable-decl-matcher nil nil nil))
 
     ;; class instantiation
     ,(list
@@ -1996,7 +1999,6 @@ This performs fontification according to `typescript--class-styles'."
         return t
         else do (goto-char orig-end)))
 
-(defconst typescript--function-call-re "\\(\\w+\\)\s*(")
 (defconst typescript--font-lock-keywords-4
   (append typescript--font-lock-keywords-3
     (list
