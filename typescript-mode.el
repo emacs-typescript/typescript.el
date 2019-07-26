@@ -270,10 +270,12 @@ Match group 1 is MUMBLE.")
   (typescript--regexp-opt-symbol
    '("abstract" "any" "as" "async" "await" "boolean" "bigint" "break" "case" "catch" "class" "const"
      "constructor" "continue" "declare" "default" "delete" "do" "else"
-     "enum" "export" "extern" "finally" "for" "function" "from" "get"
-     "goto" "if" "implements" "import" "in" "instanceof" "interface" "keyof"
-     "let" "module" "namespace" "new" "of" "return" "set" "super" "switch"
-     "throw" "true" "try" "type" "typeof" "unknown" "var"
+     "enum" "export" "extends" "extern" "false" "finally" "for"
+     "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
+     "interface" "keyof" "let" "module" "namespace" "never" "new" "null" "number" "object" "of"
+     "private" "protected" "public" "readonly" "return" "set" "static" "string"
+     "super" "switch"  "this" "throw" "true"
+     "try" "type" "typeof" "unknown" "var" "void"
      "while")) ; yield is handled separately
   "Regexp matching any typescript keyword.")
 
@@ -295,7 +297,7 @@ Match group 1 is MUMBLE.")
   (typescript--regexp-opt-symbol '("false" "null" "undefined"
                                  "Infinity" "NaN"
                                  "true" "arguments"))
-  "Regular expression matching constant values.")
+  "Regular expression matching builtin values.")
 
 (defconst typescript--builtin-re
   (typescript--regexp-opt-symbol
