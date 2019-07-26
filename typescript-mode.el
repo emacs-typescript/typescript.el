@@ -287,6 +287,17 @@ Match group 1 is MUMBLE.")
    (concat "\\:\\s-+" "\\(" typescript--name-re "\\)")
    "Regular expression matching type hints that follow the `:' operator.")
 
+(defconst typescript--generic-type-re
+  "<\\(.*\\)>"
+   "Regular expression matching generic types.")
+
+(defconst typescript--generic-type-extended-re
+  (concat "<\\(.*\\)extends\\(.*\\)>")
+   "Regular expression matching generic types with extension.")
+
+(defconst typescript--decorator-re
+  (concat "\\(@" typescript--name-re "\\)"))
+
 (defconst typescript--constant-re
   (typescript--regexp-opt-symbol '("false" "null" "undefined"
                                  "Infinity" "NaN"
@@ -2010,14 +2021,18 @@ This performs fontification according to `typescript--class-styles'."
     (,typescript--basic-type-re (1 'typescript-primitive-face))
     (,typescript--constant-re (1 font-lock-variable-name-face))
 
+
     ;; highlights that append to previous levels
     ;;
     ,@typescript--font-lock-keywords-2
     ,@typescript--font-lock-keywords-3
 
+    (,typescript--decorator-re (1 font-lock-function-name-face))
     (,typescript--function-call-re (1 font-lock-function-name-face))
     (,typescript--builtin-re (1 font-lock-type-face))
     (,typescript--type-hint-re (1 font-lock-type-face))
+    (,typescript--generic-type-re (1 font-lock-type-face))
+    (,typescript--generic-type-extended-re (1 font-lock-type-face))
 
     ;; arrow function
     ("\\(=>\\)"
