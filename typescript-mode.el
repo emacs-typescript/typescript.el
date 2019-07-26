@@ -77,12 +77,6 @@
   (concat typescript--name-re "\\(?:\\." typescript--name-re "\\)*")
   "Regexp matching a dot-separated sequence of typescript names.")
 
-(defconst typescript--this-re "\\(this\\)\\_>"
-  "Regexp matching the `this' keyword.")
-
-(defconst typescript--arrow-re "=>"
-  "Regexp matching the arrow operator.")
-
 (defconst typescript--plain-method-re
   (concat "^\\s-*?\\(" typescript--dotted-name-re "\\)\\.prototype"
           "\\.\\(" typescript--name-re "\\)\\s-*?=\\s-*?\\(function\\)\\_>")
@@ -2002,12 +1996,21 @@ This performs fontification according to `typescript--class-styles'."
         else do (goto-char orig-end)))
 
 (defconst typescript--font-lock-keywords-4
-  (append typescript--font-lock-keywords-3
-    (list
-      (list typescript--function-call-re 1 font-lock-function-name-face)
-      (cons typescript--this-re ''typescript-this-face)
-      (cons typescript--arrow-re font-lock-keyword-face)))
-  "Level four stuff.")
+  `(
+    ;; special highlight for `this' keyword
+    ("\\(this\\)\\."
+     (1 'typescript-this-face))
+
+    ,@typescript--font-lock-keywords-2
+    ,@typescript--font-lock-keywords-3
+
+    (,typescript--function-call-re (1 font-lock-function-name-face))
+
+    ;; arrow function
+    ("\\(=>\\)"
+     (1 font-lock-keyword-face))
+    )
+  "Level four font lock for `typescript-mode'.")
 
 (defconst typescript--font-lock-keywords
   '(typescript--font-lock-keywords-4 typescript--font-lock-keywords-1
