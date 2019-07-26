@@ -315,11 +315,8 @@ Match group 1 is MUMBLE.")
                       "\\s-+\\(each\\)\\_>" nil nil
                       (list 1 'font-lock-keyword-face))
                 (cons "\\_<yield\\(\\*\\|\\_>\\)" 'font-lock-keyword-face)
-                (cons typescript--access-modifier-re ''typescript-access-modifier-face)
-                (cons typescript--basic-type-re font-lock-builtin-face)
-                (cons typescript--builtin-re font-lock-type-face)
-                (list typescript--type-hint-re 1 font-lock-type-face)
-                (cons typescript--constant-re font-lock-variable-name-face)))
+                (cons typescript--basic-type-re font-lock-type-face)
+                (cons typescript--constant-re font-lock-constant-face)))
   "Level two font lock keywords for `typescript-mode'.")
 
 ;; typescript--pitem is the basic building block of the lexical
@@ -611,14 +608,19 @@ Match group 1 is MUMBLE.")
   "Face used to highlight tag values in jsdoc comments."
   :group 'typescript)
 
+(defface typescript-access-modifier-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face used to highlight access modifiers."
+  :group 'typescript)
+
 (defface typescript-this-face
   '((t (:inherit font-lock-keyword-face)))
   "Face used to highlight 'this' keyword."
   :group 'typescript)
 
-(defface typescript-access-modifier-face
+(defface typescript-primitive-face
   '((t (:inherit font-lock-keyword-face)))
-  "Face used to highlight access modifiers."
+  "Face used to highlight builtin types."
   :group 'typescript)
 
 ;;; User Customization
@@ -1997,14 +1999,25 @@ This performs fontification according to `typescript--class-styles'."
 
 (defconst typescript--font-lock-keywords-4
   `(
+    ;; highlights that override previous levels
+    ;;
+
     ;; special highlight for `this' keyword
     ("\\(this\\)\\."
      (1 'typescript-this-face))
 
+    (,typescript--access-modifier-re (1 'typescript-access-modifier-face))
+    (,typescript--basic-type-re (1 'typescript-primitive-face))
+    (,typescript--constant-re (1 font-lock-variable-name-face))
+
+    ;; highlights that append to previous levels
+    ;;
     ,@typescript--font-lock-keywords-2
     ,@typescript--font-lock-keywords-3
 
     (,typescript--function-call-re (1 font-lock-function-name-face))
+    (,typescript--builtin-re (1 font-lock-type-face))
+    (,typescript--type-hint-re (1 font-lock-type-face))
 
     ;; arrow function
     ("\\(=>\\)"
