@@ -283,6 +283,36 @@ Match group 1 is MUMBLE.")
    '("private" "protected" "public" "readonly" "static" "extends" "implements"))
   "Regular expression matching access modifiers.")
 
+(defconst ng2-ts-type-name-re
+  (concat "\\_<[A-Z_$]\\(?:\\s_\\|\\sw\\)*\\_>"))
+
+(defconst ng2-ts-name-re
+  (concat "\\_<[A-Za-z_$]\\(?:\\s_\\|\\sw\\)*\\_>"))
+
+(defconst ng2-ts-type-re
+  (concat
+   "\\(?:\\(?:" typescript--keyword-re "\\)\\|"
+   "\\(?:\\(?:" ng2-ts-type-name-re "\\|" ng2-ts-name-re "\\.\\)*"
+   "\\(" ng2-ts-type-name-re "\\)" ; Type name
+   "\\(?:\\[\\(" ng2-ts-type-name-re "\\)\\]\\)?\\)\\)")) ; Type subscript
+
+(defconst ng2-ts-type-annotation-re
+  (concat ":\\s-*" ng2-ts-type-re "\\s-*"))
+
+(defconst ng2-ts-fn-search-re
+  (concat
+   "\\(%s\\)" ; Function name
+   "\\(?:<.*?>\\)?" ; Generic argument
+   "([^)]*)\\s-*" ; Argument list
+   "\\(?::\\s-*" ng2-ts-type-re "\\)?"; Return type
+   "\\(?:<.*?>\\)?\\s-*{"))
+
+(defconst ng2-ts-name-re
+  (concat "\\_<[A-Za-z_$]\\(?:\\s_\\|\\sw\\)*\\_>"))
+
+(defconst ng2-ts-fn-re
+  (format ng2-ts-fn-search-re ng2-ts-name-re))
+
 (defconst typescript--type-hint-re
    (concat "\\:\\s-+" "\\(" typescript--name-re "\\)")
    "Regular expression matching type hints that follow the `:' operator.")
@@ -2017,6 +2047,7 @@ This performs fontification according to `typescript--class-styles'."
     ("\\(this\\)\\."
      (1 'typescript-this-face))
 
+
     (,typescript--access-modifier-re (1 'typescript-access-modifier-face))
     (,typescript--basic-type-re (1 'typescript-primitive-face))
     (,typescript--constant-re (1 font-lock-variable-name-face))
@@ -2027,10 +2058,12 @@ This performs fontification according to `typescript--class-styles'."
     ,@typescript--font-lock-keywords-2
     ,@typescript--font-lock-keywords-3
 
+    (,ng2-ts-fn-re (1 font-lock-type-face))
+    (,ng2-ts-type-annotation-re (2 font-lock-type-face))
     (,typescript--decorator-re (1 font-lock-function-name-face))
     (,typescript--function-call-re (1 font-lock-function-name-face))
     (,typescript--builtin-re (1 font-lock-type-face))
-    (,typescript--type-hint-re (1 font-lock-type-face))
+    ;; (,typescript--type-hint-re (1 font-lock-type-face))
     (,typescript--generic-type-re (1 font-lock-type-face))
     (,typescript--generic-type-extended-re (1 font-lock-type-face))
 
