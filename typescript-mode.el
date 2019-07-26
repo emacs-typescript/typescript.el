@@ -297,8 +297,8 @@ Match group 1 is MUMBLE.")
 (defconst typescript--constant-re
   (typescript--regexp-opt-symbol '("false" "null" "undefined"
                                  "Infinity" "NaN"
-                                 "true" "arguments"))
-  "Regular expression matching builtin values.")
+                                 "true" "arguments" "this"))
+  "Regular expression matching any future reserved words in typescript.")
 
 (defconst typescript--builtin-re
   (typescript--regexp-opt-symbol
