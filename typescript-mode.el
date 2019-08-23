@@ -2015,7 +2015,6 @@ This performs fontification according to `typescript--class-styles'."
 
     (,typescript--access-modifier-re (1 'typescript-access-modifier-face))
     (,typescript--basic-type-re (1 'typescript-primitive-face))
-    (,typescript--constant-re (1 font-lock-variable-name-face))
 
     ;; highlights that append to previous levels
     ;;
