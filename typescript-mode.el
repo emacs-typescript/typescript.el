@@ -305,7 +305,7 @@ Match group 1 is MUMBLE.")
    '("console"))
   "Regular expression matching builtins.")
 
-(defconst typescript--function-call-re "\\(\\w+\\)\s*("
+(defconst typescript--function-call-re "\\(\\w+\\)\\(<.+>\\)?\s*("
   "Regular expression matching function calls.")
 
 (defconst typescript--font-lock-keywords-1
