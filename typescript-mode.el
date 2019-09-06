@@ -1878,7 +1878,7 @@ and searches for the next token to be highlighted."
     ;; formal parameters
     ,(list
       (concat
-       "\\_<function\\_>\\|=\\(\\s-+" typescript--name-re "\\)?\\s-*(\\s-*"
+       "\\_<function\\_>\\(\\s-+" typescript--name-re "\\)?\\s-*(\\s-*"
        typescript--name-start-re)
       (list (concat "\\(" typescript--name-re "\\)\\(\\s-*).*\\)?")
             '(backward-char)
@@ -2018,7 +2018,6 @@ This performs fontification according to `typescript--class-styles'."
 
     ;; highlights that append to previous levels
     ;;
-    ,@typescript--font-lock-keywords-2
     ,@typescript--font-lock-keywords-3
 
     (,typescript--decorator-re (1 font-lock-function-name-face))
