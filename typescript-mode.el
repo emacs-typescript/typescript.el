@@ -270,7 +270,7 @@ Match group 1 is MUMBLE.")
      "private" "protected" "public" "readonly" "return" "set" "static" "string"
      "super" "switch"  "this" "throw" "true"
      "try" "type" "typeof" "unknown" "var" "void"
-     "while"))                  ; yield is handled separately
+     "while")) ; yield is handled separately
   "Regexp matching any typescript keyword.")
 
 (defconst typescript--basic-type-re
@@ -278,12 +278,35 @@ Match group 1 is MUMBLE.")
    '("any" "bool" "boolean" "bigint" "never" "number" "string" "unknown" "void"))
   "Regular expression matching any predefined type in typescript.")
 
+(defconst typescript--access-modifier-re
+  (typescript--regexp-opt-symbol
+   '("private" "protected" "public" "readonly" "static" "extends" "implements"))
+  "Regular expression matching access modifiers.")
+
+(defconst typescript--generic-type-re
+  "<\\(.*\\)>"
+   "Regular expression matching generic types.")
+
+(defconst typescript--generic-type-extended-re
+  (concat "<\\(.*\\)extends\\(.*\\)>")
+   "Regular expression matching generic types with extension.")
+
+(defconst typescript--decorator-re
+  (concat "\\(@" typescript--name-re "\\)"))
+
 (defconst typescript--constant-re
   (typescript--regexp-opt-symbol '("false" "null" "undefined"
                                  "Infinity" "NaN"
                                  "true" "arguments" "this"))
   "Regular expression matching any future reserved words in typescript.")
 
+(defconst typescript--builtin-re
+  (typescript--regexp-opt-symbol
+   '("console"))
+  "Regular expression matching builtins.")
+
+(defconst typescript--function-call-re "\\(\\w+\\)\\(<.+>\\)?\s*("
+  "Regular expression matching function calls.")
 
 (defconst typescript--font-lock-keywords-1
   (list
@@ -590,6 +613,21 @@ Match group 1 is MUMBLE.")
 (defface typescript-jsdoc-value
   '((t :foreground "gold4"))
   "Face used to highlight tag values in jsdoc comments."
+  :group 'typescript)
+
+(defface typescript-access-modifier-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face used to highlight access modifiers."
+  :group 'typescript)
+
+(defface typescript-this-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face used to highlight 'this' keyword."
+  :group 'typescript)
+
+(defface typescript-primitive-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face used to highlight builtin types."
   :group 'typescript)
 
 ;;; User Customization
@@ -1966,10 +2004,40 @@ This performs fontification according to `typescript--class-styles'."
         return t
         else do (goto-char orig-end)))
 
+(defconst typescript--font-lock-keywords-4
+  `(
+    ;; highlights that override previous levels
+    ;;
+
+    ;; special highlight for `this' keyword
+    ("\\(this\\)\\."
+     (1 'typescript-this-face))
+
+    (,typescript--access-modifier-re (1 'typescript-access-modifier-face))
+    (,typescript--basic-type-re (1 'typescript-primitive-face))
+
+    ;; highlights that append to previous levels
+    ;;
+    ,@typescript--font-lock-keywords-3
+
+    (,typescript--decorator-re (1 font-lock-function-name-face))
+    (,typescript--function-call-re (1 font-lock-function-name-face))
+    (,typescript--builtin-re (1 font-lock-type-face))
+
+    (,typescript--generic-type-re (1 font-lock-type-face))
+    (,typescript--generic-type-extended-re (1 font-lock-type-face))
+
+    ;; arrow function
+    ("\\(=>\\)"
+     (1 font-lock-keyword-face))
+    )
+  "Level four font lock for `typescript-mode'.")
+
 (defconst typescript--font-lock-keywords
-  '(typescript--font-lock-keywords-3 typescript--font-lock-keywords-1
+  '(typescript--font-lock-keywords-4 typescript--font-lock-keywords-1
                                    typescript--font-lock-keywords-2
-                                   typescript--font-lock-keywords-3)
+                                   typescript--font-lock-keywords-3
+                                   typescript--font-lock-keywords-4)
   "Font lock keywords for `typescript-mode'.  See `font-lock-keywords'.")
 
 ;;; Propertize
