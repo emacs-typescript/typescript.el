@@ -283,14 +283,6 @@ Match group 1 is MUMBLE.")
    '("private" "protected" "public" "readonly" "static" "extends" "implements"))
   "Regular expression matching access modifiers.")
 
-(defconst typescript--generic-type-re
-  "<\\(.*\\)>"
-   "Regular expression matching generic types.")
-
-(defconst typescript--generic-type-extended-re
-  (concat "<\\(.*\\)extends\\(.*\\)>")
-   "Regular expression matching generic types with extension.")
-
 (defconst typescript--decorator-re
   (concat "\\(@" typescript--name-re "\\)"))
 
@@ -1878,7 +1870,7 @@ and searches for the next token to be highlighted."
     ;; formal parameters
     ,(list
       (concat
-       "\\_<function\\_>\\(\\s-+" typescript--name-re "\\)?\\s-*(\\s-*"
+       "\\_<function\\_>\\(\\s-+" typescript--name-re "\\)?\\s-*\\(<.*>\\)?\\s-*(\\s-*"
        typescript--name-start-re)
       (list (concat "\\(" typescript--name-re "\\)\\(\\s-*).*\\)?")
             '(backward-char)
@@ -1982,7 +1974,7 @@ context."
     (when (called-interactively-p 'interactive)
       (message "Syntactic context: %s" syntactic-context))
 
-    syntactic-context))
+   syntactic-context))
 
 (defun typescript--class-decl-matcher (limit)
   "Font lock function used by `typescript-mode'.
@@ -2016,6 +2008,14 @@ This performs fontification according to `typescript--class-styles'."
     (,typescript--access-modifier-re (1 'typescript-access-modifier-face))
     (,typescript--basic-type-re (1 'typescript-primitive-face))
 
+    ;; generics support
+    ,(list
+      (concat "<\\s-*" typescript--name-start-re)
+      (list (concat "\\(" typescript--name-re "\\)\\(\\s-*>[^<]*\\)?")
+            '(backward-char)
+            '(end-of-line)
+            '(1 font-lock-type-face)))
+
     ;; highlights that append to previous levels
     ;;
     ,@typescript--font-lock-keywords-3
@@ -2023,9 +2023,6 @@ This performs fontification according to `typescript--class-styles'."
     (,typescript--decorator-re (1 font-lock-function-name-face))
     (,typescript--function-call-re (1 font-lock-function-name-face))
     (,typescript--builtin-re (1 font-lock-type-face))
-
-    (,typescript--generic-type-re (1 font-lock-type-face))
-    (,typescript--generic-type-extended-re (1 font-lock-type-face))
 
     ;; arrow function
     ("\\(=>\\)"

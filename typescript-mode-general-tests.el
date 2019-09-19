@@ -319,6 +319,36 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
       (("y0" "y1" "y2" "y3") . font-lock-variable-name-face)
       (("ret0" "ret1" "ret2" "ret3") . nil))))
 
+(ert-deftest font-lock/level-four ()
+  "Tests the level four font lock highlights."
+  (font-lock-test
+   "@decorator\n
+class Foo<T> extends Bar {\n
+private async innerExecuteAsync<TResponse extends Response, TValue>(endpoint: string, data?: any): Promise<TResponse> {\n
+innerExecuteAsync(x: string, y: boolean, z: number, j?: any): Promise<FResponse> {\n
+console.log(this.methodCall())"
+    '(("@decorator" . font-lock-function-name-face)
+      ("Foo" . font-lock-type-face)
+      ("private" . typescript-access-modifier-face)
+      ("innerExecuteAsync" . font-lock-function-name-face)
+      (("TResponse" "FResponse" "Response" "TValue") . font-lock-type-face)
+      ("console" . font-lock-type-face)
+      ("this" . typescript-this-face)
+      ("methodCall" . font-lock-function-name-face)
+      (("string" "boolean" "number" "any") . typescript-primitive-face)
+      (("endpoint" "data") . nil)
+      (("<" ">" ",") . nil))))
+
+(ert-deftest font-lock/generics ()
+  "Tests that type hints within generics are highlighted properly."
+  (font-lock-test
+   "const map = new Map<string, number>()\n
+function foo<Z, Y, Z & Y, Z | Y | Z, Y<X<X, Y>>>()\n"
+   '((("string" "number") . typescript-primitive-face)
+      ("foo" . font-lock-function-name-face)
+      (("Z" "Y" "X") . font-lock-type-face)
+      (("<" ">" "," "&" "|") . nil))))
+
 (ert-deftest font-lock/regexp ()
   "Regular expresssions should be fontified as string constant."
   (let ((content "=/foo/ (/bar/ ,/baz/ :/buzz/"))
