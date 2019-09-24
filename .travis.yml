@@ -19,7 +19,7 @@ env:
 
 matrix:
   allow_failures:
-    - env: EVM_EMACS=emacs-git-snapshot-travis
+    - env: EVM_EMACS=emacs-git-snapshot-travis-linux-xenial
 
 script:
   - make test
