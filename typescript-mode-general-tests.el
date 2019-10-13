@@ -336,8 +336,27 @@ console.log(this.methodCall())"
       ("this" . typescript-this-face)
       ("methodCall" . font-lock-function-name-face)
       (("string" "boolean" "number" "any") . typescript-primitive-face)
-      (("endpoint" "data") . nil)
+      (("endpoint" "data") . font-lock-variable-name-face)
       (("<" ">" ",") . nil))))
+
+(ert-deftest font-lock/class-function-params ()
+  "Tests highlighting params of function definitions within classes."
+  (font-lock-test
+   "class Foo<T> extends Bar {\n
+method1(param1) {}\n
+method2(param2, param3) {}\n
+method3(param4: string, param5: Bar) {\n
+console.log(notAParam)\n
+}\n
+method4<T>(param6) {}\n
+method5<T>(\n
+param7: string, param8\n
+)\n"
+   '((("method1" "method2" "method3" "method4" "method5") . font-lock-function-name-face)
+     (("param1" "param2" "param3" "param4") . font-lock-variable-name-face)
+     (("param5" "param6" "param7" "param8") . font-lock-variable-name-face)
+      ("string" . typescript-primitive-face)
+      ("notAParam" . nil))))
 
 (ert-deftest font-lock/generics ()
   "Tests that type hints within generics are highlighted properly."

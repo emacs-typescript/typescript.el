@@ -1524,9 +1524,11 @@ LIMIT defaults to point."
       (typescript--up-nearby-list)
       (and (looking-at "(")
            (progn (forward-symbol -1)
-                  (or (looking-at "function")
+                  (or (typescript--inside-class-list-p)
+                      (looking-at "function")
                       (progn (forward-symbol -1)
-                             (looking-at "function"))))))))
+                             (or (typescript--inside-class-list-p)
+                                 (looking-at "function")))))))))
 
 (defun typescript--inside-dojo-class-list-p ()
   "Return non-nil iff point is in a Dojo multiple-inheritance class block."
@@ -1538,6 +1540,18 @@ LIMIT defaults to point."
         (and (looking-at typescript--dojo-class-decl-re)
              (goto-char (match-end 0))
              (looking-at "\"\\s-*,\\s-*\\[")
+             (eq (match-end 0) (1+ list-begin)))))))
+
+(defun typescript--inside-class-list-p ()
+  "Return non-nil iff point is in a class block."
+  (ignore-errors
+    (save-excursion
+      (typescript--up-nearby-list)
+      (let ((list-begin (point)))
+        (forward-line 0)
+        (and (or (looking-at ".*class.*{")
+                 (looking-at ".*interface.*{"))
+             (goto-char (match-end 0))
              (eq (match-end 0) (1+ list-begin)))))))
 
 (defun typescript--syntax-begin-function ()
@@ -1877,10 +1891,46 @@ and searches for the next token to be highlighted."
             '(end-of-line)
             '(1 font-lock-variable-name-face)))
 
-    ;; continued formal parameter list
+    ("(\\(.*\\))\\s-+=>"
+     (1 font-lock-constant-face))
+
+    ;; lambda without argument parenthesis
+    ,(list
+      (concat "\\(" typescript--name-re "\\)" "\\s-+=>")
+      (list 1 'font-lock-constant-face))
+
+    ;; formal parameters - lambda functions
+    ;; ,(list
+    ;;   (concat
+    ;;    "(\\s-*" typescript--name-start-re "\\s-*")
+    ;;   (list (concat "\\(" typescript--name-re "\\)\\(\\s-*).*\\)?")
+    ;;         '(backward-char)
+    ;;         '(end-of-line)
+    ;;         '(1 font-lock-variable-name-face)))
+    ;; ,(list
+    ;;   (concat "\\s-*" typescript--name-start-re "\\s-*")
+    ;;   (list (concat "\\(" typescript--name-re "\\)" "\\s-*" ")?" "\\s-*" "\\(=>\\)")
+    ;;         '(backward-char)
+    ;;         '(end-of-line)
+    ;;         '(1 font-lock-constant-face)))
+
+    ;; continued formal parameters - class functions
     ,(list
       (concat
-       "^\\s-*" typescript--name-re "\\s-*[,)]")
+       "\\(\\s-+" typescript--name-re "\\)?\\s-*\\(<.*>\\)?\\s-*(\\s-*"
+       typescript--name-start-re)
+      (list (concat "\\(" typescript--name-re "\\)\\(\\s-*).*\\)?")
+            '(if (save-excursion (backward-char)
+                                 (typescript--inside-param-list-p))
+                 (forward-symbol -1)
+               (end-of-line))
+            '(end-of-line)
+            '(1 font-lock-variable-name-face)))
+
+    ;; continued formal parameter list -- multiline parameter list
+    ,(list
+      (concat
+       "^\\s-*" typescript--name-re "\\s-*[,:)]")
       (list typescript--name-re
             '(if (save-excursion (backward-char)
                                  (typescript--inside-param-list-p))
