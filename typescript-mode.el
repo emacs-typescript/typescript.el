@@ -764,6 +764,7 @@ comment."
                    (eq (current-column)
                        (1+ (current-indentation)))))
       (indent-according-to-mode))))
+(put 'typescript-insert-and-indent 'delete-selection t)
 
 (defun typescript-insert-and-autoconvert-to-template (key)
   "Run the command bount to KEY, and autoconvert to template if necessary."
@@ -771,6 +772,7 @@ comment."
   (call-interactively (lookup-key (current-global-map) key))
   (when typescript-autoconvert-to-template-flag
     (typescript-autoconvert-to-template)))
+(put 'typescript-insert-and-autoconvert-to-template 'delete-selection t)
 
 ;;; Syntax table and parsing
 
