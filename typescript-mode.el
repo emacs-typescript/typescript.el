@@ -2012,7 +2012,7 @@ This performs fontification according to `typescript--class-styles'."
 
     ;; generics support
     ,(list
-      (concat "<\\s-*" typescript--name-start-re)
+      (concat typescript--name-re "\\s-*" "<\\s-*" typescript--name-start-re)
       (list (concat "\\(" typescript--name-re "\\)\\(\\s-*>[^<]*\\)?")
             '(backward-char)
             '(end-of-line)
