@@ -50,6 +50,17 @@ to `false`: `tsc --pretty false`. However, doing this does more than
 just turning off the colors. It also causes `tsc` to produce less
 elaborate error messages.
 
+# Contributing
+
+To run the tests you can run `make test`.
+
+If you prefer, you may run the tests via the provided `Dockerfile`.
+
+```bash
+docker build -t typescript-mode .
+docker run --rm -v $(pwd):/typescript-mode typescript-mode
+```
+
 # Other Typescript-packages of interest
 
 While `typescript.el` may *not* provide a full kitchen-sink, the good

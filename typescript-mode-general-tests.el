@@ -349,6 +349,12 @@ function foo<Z, Y, Z & Y, Z | Y | Z, Y<X<X, Y>>>()\n"
       (("Z" "Y" "X") . font-lock-type-face)
       (("<" ">" "," "&" "|") . nil))))
 
+(ert-deftest font-lock/tsx ()
+  "Tests that tsx blocks are not considered generics by virtue of the <."
+  (font-lock-test
+   "<div>test</div>"
+   '((("div" . nil)))))
+
 (ert-deftest font-lock/regexp ()
   "Regular expresssions should be fontified as string constant."
   (let ((content "=/foo/ (/bar/ ,/baz/ :/buzz/"))
