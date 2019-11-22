@@ -57,8 +57,8 @@ To run the tests you can run `make test`.
 If you prefer, you may run the tests via the provided `Dockerfile`.
 
 ```bash
-docker build -t typescript.el .
-docker run --rm -v $(pwd):/home/typescript.el typescript.el
+docker build -t typescript-mode .
+docker run --rm -v $(pwd):/typescript-mode typescript-mode
 ```
 
 # Other Typescript-packages of interest

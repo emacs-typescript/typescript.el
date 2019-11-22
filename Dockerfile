@@ -7,8 +7,8 @@ RUN apt-get update && \
 RUN curl -fsSL https://raw.githubusercontent.com/cask/cask/master/go | python
 ENV PATH="/root/.cask/bin:${PATH}"
 
-RUN mkdir -p /home/typescript.el
-COPY . /home/typescript.el
-WORKDIR /home/typescript.el
+RUN mkdir -p /typescript-mode
+COPY . /typescript-mode
+WORKDIR /typescript-mode
 
 CMD ["make", "test"]
