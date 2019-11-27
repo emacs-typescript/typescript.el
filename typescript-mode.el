@@ -59,7 +59,7 @@
   (require 'newcomment))
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 ;;; Constants
 
@@ -228,7 +228,7 @@ If :strip-prototype is present and non-nil, then if the class
 name as matched contains")
 
 (defconst typescript--available-frameworks
-  (loop with available-frameworks
+  (cl-loop with available-frameworks
         for style in typescript--class-styles
         for framework = (plist-get style :framework)
         unless (memq framework available-frameworks)
@@ -372,7 +372,7 @@ Match group 1 is MUMBLE.")
 ;; (The exception for b-end and its caveats is described below.)
 ;;
 
-(defstruct (typescript--pitem (:type list))
+(cl-defstruct (typescript--pitem (:type list))
   ;; IMPORTANT: Do not alter the position of fields within the list.
   ;; Various bits of code depend on their positions, particularly
   ;; anything that manipulates the list of children.
@@ -806,7 +806,7 @@ comment."
 (make-variable-buffer-local 'typescript--state-at-last-parse-pos)
 
 (defun typescript--flatten-list (list)
-  (loop for item in list
+  (cl-loop for item in list
         nconc (cond ((consp item)
                      (typescript--flatten-list item))
                     (item (list item)))))
@@ -1020,10 +1020,10 @@ one at the end of the line with \"let a\"."
   "Move forward over a whole typescript expression.
 This function doesn't move over expressions continued across
 lines."
-  (loop
+  (cl-loop
    do (progn
         (forward-comment most-positive-fixnum)
-        (loop until (or (eolp)
+        (cl-loop until (or (eolp)
                         (progn
                           (forward-comment most-positive-fixnum)
                           (memq (char-after) '(?\, ?\; ?\] ?\) ?\}))))
@@ -1040,7 +1040,7 @@ This puts point at the 'function' keyword.
 If this is a syntactically-correct non-expression function,
 return the name of the function, or t if the name could not be
 determined.  Otherwise, return nil."
-  (assert (looking-at "\\_<function\\_>"))
+  (cl-assert (looking-at "\\_<function\\_>"))
   (let ((name t))
     (forward-word)
     (forward-comment most-positive-fixnum)
@@ -1099,11 +1099,11 @@ anything."
   "Helper function for `typescript--beginning-of-defun-nested'.
 If PSTATE represents a non-empty top-level defun, return the
 top-most pitem.  Otherwise, return nil."
-  (loop for pitem in pstate
+  (cl-loop for pitem in pstate
         with func-depth = 0
         with func-pitem
         if (eq 'function (typescript--pitem-type pitem))
-        do (incf func-depth)
+        do (cl-incf func-depth)
         and do (setq func-pitem pitem)
         finally return (if (eq func-depth 1) func-pitem)))
 
@@ -1112,7 +1112,7 @@ top-most pitem.  Otherwise, return nil."
 Return the pitem of the function we went to the beginning of."
   (or
    ;; Look for the smallest function that encloses point...
-   (loop for pitem in (typescript--parse-state-at-point)
+   (cl-loop for pitem in (typescript--parse-state-at-point)
          if (and (eq 'function (typescript--pitem-type pitem))
                  (typescript--inside-pitem-p pitem))
          do (goto-char (typescript--pitem-h-begin pitem))
@@ -1120,7 +1120,7 @@ Return the pitem of the function we went to the beginning of."
 
    ;; ...and if that isn't found, look for the previous top-level
    ;; defun
-   (loop for pstate = (typescript--backward-pstate)
+   (cl-loop for pstate = (typescript--backward-pstate)
          while pstate
          if (typescript--pstate-is-toplevel-defun pstate)
          do (goto-char (typescript--pitem-h-begin it))
@@ -1136,7 +1136,7 @@ Return the pitem of the function we went to the beginning of."
   "Value of `beginning-of-defun-function' for `typescript-mode'."
   (setq arg (or arg 1))
   (while (and (not (eobp)) (< arg 0))
-    (incf arg)
+    (cl-incf arg)
     (when (and (not typescript-flat-functions)
                (or (eq (typescript-syntactic-context) 'function)
                    (typescript--function-prologue-beginning)))
@@ -1148,7 +1148,7 @@ Return the pitem of the function we went to the beginning of."
       (goto-char (point-max))))
 
   (while (> arg 0)
-    (decf arg)
+    (cl-decf arg)
     ;; If we're just past the end of a function, the user probably wants
     ;; to go to the beginning of *that* function
     (when (eq (char-before) ?})
@@ -1177,14 +1177,14 @@ BEG defaults to `point-min', meaning to flush the entire cache."
 (defun typescript--ensure-cache--pop-if-ended (open-items paren-depth)
   (let ((top-item (car open-items)))
     (when (<= paren-depth (typescript--pitem-paren-depth top-item))
-      (assert (not (get-text-property (1- (point)) 'typescript-pend)))
+      (cl-assert (not (get-text-property (1- (point)) 'typescript-pend)))
       (put-text-property (1- (point)) (point) 'typescript--pend top-item)
       (setf (typescript--pitem-b-end top-item) (point))
       (setq open-items
             ;; open-items must contain at least two items for this to
             ;; work, but because we push a dummy item to start with,
             ;; that assumption holds.
-            (cons (typescript--pitem-add-child (second open-items) top-item)
+            (cons (typescript--pitem-add-child (cl-second open-items) top-item)
                   (cddr open-items)))))
   open-items)
 
@@ -1202,7 +1202,7 @@ the body of `typescript--ensure-cache'."
               ;; Make sure parse-partial-sexp doesn't stop because we *entered*
               ;; the given depth -- i.e., make sure we're deeper than the target
               ;; depth.
-              (assert (> (nth 0 parse)
+              (cl-assert (> (nth 0 parse)
                          (typescript--pitem-paren-depth (car open-items))))
               (setq parse (parse-partial-sexp
                            prev-parse-point goal-point
@@ -1302,7 +1302,7 @@ LIMIT defaults to point."
 
       ;; Figure out which class styles we need to look for
       (setq filtered-class-styles
-            (loop for style in typescript--class-styles
+            (cl-loop for style in typescript--class-styles
                   if (memq (plist-get style :framework)
                            typescript-enabled-frameworks)
                   collect style))
@@ -1324,7 +1324,7 @@ LIMIT defaults to point."
               (unless (bobp)
                 (setq open-items (get-text-property (1- (point))
                                                     'typescript--pstate))
-                (assert open-items))))
+                (cl-assert open-items))))
 
           (unless open-items
             ;; Make a placeholder for the top-level definition
@@ -1337,7 +1337,7 @@ LIMIT defaults to point."
 
           (narrow-to-region (point-min) limit)
 
-          (loop while (re-search-forward typescript--quick-match-re-func nil t)
+          (cl-loop while (re-search-forward typescript--quick-match-re-func nil t)
                 for orig-match-start = (goto-char (match-beginning 0))
                 for orig-match-end = (match-end 0)
                 do (typescript--ensure-cache--update-parse)
@@ -1367,7 +1367,7 @@ LIMIT defaults to point."
 
                          (setq name t)))
 
-                     (assert (eq (char-after) ?{))
+                     (cl-assert (eq (char-after) ?{))
                      (forward-char)
                      (make-typescript--pitem
                       :paren-depth orig-depth
@@ -1392,7 +1392,7 @@ LIMIT defaults to point."
                                      (list (match-string-no-properties 2))))))
 
                     ;; Class definition
-                    ((loop with syntactic-context =
+                    ((cl-loop with syntactic-context =
                            (typescript--syntactic-context-from-pstate open-items)
                            for class-style in filtered-class-styles
                            if (and (memq syntactic-context
@@ -1418,12 +1418,11 @@ LIMIT defaults to point."
           (typescript--ensure-cache--update-parse)
           (setq typescript--cache-end limit)
           (setq typescript--last-parse-pos limit)
-          (setq typescript--state-at-last-parse-pos open-items)
-          )))))
+          (setq typescript--state-at-last-parse-pos open-items))))))
 
 (defun typescript--end-of-defun-flat ()
   "Helper function for `typescript-end-of-defun'."
-  (loop while (typescript--re-search-forward "}" nil t)
+  (cl-loop while (typescript--re-search-forward "}" nil t)
         do (typescript--ensure-cache)
         if (get-text-property (1- (point)) 'typescript--pend)
         if (eq 'function (typescript--pitem-type it))
@@ -1460,14 +1459,14 @@ LIMIT defaults to point."
   "Value of `end-of-defun-function' for `typescript-mode'."
   (setq arg (or arg 1))
   (while (and (not (bobp)) (< arg 0))
-    (incf arg)
+    (cl-incf arg)
     (typescript-beginning-of-defun)
     (typescript-beginning-of-defun)
     (unless (bobp)
       (typescript-end-of-defun)))
 
   (while (> arg 0)
-    (decf arg)
+    (cl-decf arg)
     ;; look for function backward. if we're inside it, go to that
     ;; function's end. otherwise, search for the next function's end and
     ;; go there
@@ -1578,7 +1577,7 @@ end of the string was not found."
                      (point)
                    ;; We just search forward and then check if the hit we get has a
                    ;; string-start equal to ours.
-                   (loop while (re-search-forward
+                   (cl-loop while (re-search-forward
                                 (concat "\\(?:[^\\]\\|^\\)\\(" (string str-terminator) "\\)")
                                 nil t)
                          if (eq string-start
@@ -1612,7 +1611,7 @@ REGEXPS, but only if FRAMEWORK is in `typescript-enabled-frameworks'."
 If FUNC is supplied, call it with no arguments before every
 variable name in the spec.  Return true iff this was actually a
 spec.  FUNC must preserve the match data."
-  (case (char-after)
+  (cl-case (char-after)
     (?\[
      (forward-char)
      (while
@@ -1713,7 +1712,7 @@ point of view of font-lock.  It applies highlighting directly with
 (defun typescript--documentation-font-lock-helper (re limit)
   "This is a helper macro that determines whether jsdoc highlighting is to be applied,
 and searches for the next token to be highlighted."
-  (loop while (re-search-forward re limit t)
+  (cl-loop while (re-search-forward re limit t)
         if (typescript--in-documentation-comment-p)
         return (point)))
 
@@ -1743,7 +1742,7 @@ and searches for the next token to be highlighted."
 
 (defun typescript--tslint-flag-matcher (limit)
   "Font-lock mode matcher that finds tslint flags in comments."
-  (loop while (re-search-forward typescript-tslint-flag-regexp limit t)
+  (cl-loop while (re-search-forward typescript-tslint-flag-regexp limit t)
         if (nth 4 (syntax-ppss (match-beginning 1)))
         return (point)))
 
@@ -1925,8 +1924,8 @@ and searches for the next token to be highlighted."
 (defun typescript--inside-pitem-p (pitem)
   "Return whether point is inside the given pitem's header or body."
   (typescript--ensure-cache)
-  (assert (typescript--pitem-h-begin pitem))
-  (assert (typescript--pitem-paren-depth pitem))
+  (cl-assert (typescript--pitem-h-begin pitem))
+  (cl-assert (typescript--pitem-paren-depth pitem))
 
   (and (> (point) (typescript--pitem-h-begin pitem))
        (or (null (typescript--pitem-b-end pitem))
@@ -1948,7 +1947,7 @@ will be returned."
 
         ;; Loop until we either hit a pitem at BOB or pitem ends after
         ;; point (or at point if we're at eob)
-        (loop for pitem = (car pstate)
+        (cl-loop for pitem = (car pstate)
               until (or (eq (typescript--pitem-type pitem)
                             'toplevel)
                         (typescript--inside-pitem-p pitem))
@@ -1981,11 +1980,11 @@ context."
 (defun typescript--class-decl-matcher (limit)
   "Font lock function used by `typescript-mode'.
 This performs fontification according to `typescript--class-styles'."
-  (loop initially (typescript--ensure-cache limit)
+  (cl-loop initially (typescript--ensure-cache limit)
         while (re-search-forward typescript--quick-match-re limit t)
         for orig-end = (match-end 0)
         do (goto-char (match-beginning 0))
-        if (loop for style in typescript--class-styles
+        if (cl-loop for style in typescript--class-styles
                  for decl-re = (plist-get style :class-decl)
                  if (and (memq (plist-get style :framework)
                                typescript-enabled-frameworks)
@@ -2028,8 +2027,7 @@ This performs fontification according to `typescript--class-styles'."
 
     ;; arrow function
     ("\\(=>\\)"
-     (1 font-lock-keyword-face))
-    )
+     (1 font-lock-keyword-face)))
   "Level four font lock for `typescript-mode'.")
 
 (defconst typescript--font-lock-keywords
@@ -2167,7 +2165,7 @@ brackets, and decreases when we cross opening brackets."
        ;; If we cross over a reserved start keyword, we abandon hope of finding
        ;; a matching angle bracket.  This prevents extreme recursion depths.
        (typescript--re-search-backward (concat "[<>]\\|" typescript--reserved-start-keywords-re) nil t)
-       (case (char-after)
+       (cl-case (char-after)
          (?< (typescript--search-backward-matching-angle-bracket-inner (- depth 1)))
          (?> (typescript--search-backward-matching-angle-bracket-inner (+ depth 1)))))))
 
@@ -2259,8 +2257,7 @@ Searches specifically for any of \"=\", \"}\", and \"type\"."
                  (typescript--backward-syntactic-ws)
                  ;; We might misindent some expressions that would
                  ;; return NaN anyway.  Shouldn't be a problem.
-                 (memq (char-before) '(?, ?} ?{ ?\;)))))))
-)
+                 (memq (char-before) '(?, ?} ?{ ?\;))))))))
 
 
 (defun typescript--continued-expression-p ()
@@ -2352,7 +2349,7 @@ Returns nil on failure, or the position to which the point was
 moved on success."
   (when (eq (char-after) ?>)
     (let ((depth 1))
-      (loop named search-loop
+      (cl-loop named search-loop
             while (> depth 0)
             do (progn
                  (unless (re-search-backward "[<>]" nil t)
@@ -2384,7 +2381,7 @@ moved on success."
          (or
           ;; This handles the case of a function with return type annotation.
           (save-excursion
-            (loop named search-loop
+            (cl-loop named search-loop
                   do
                   (typescript--backward-syntactic-ws)
                   ;; Check whether we are at "):".
@@ -2620,8 +2617,8 @@ the broken-down class name of the item to insert."
              name-parts
              (mapcar #'typescript--pitem-name items))
 
-    (assert (stringp top-name))
-    (assert (> (length top-name) 0))
+    (cl-assert (stringp top-name))
+    (cl-assert (> (length top-name) 0))
 
     ;; If top-name isn't found in items, then we build a copy of items
     ;; and throw it away. But that's okay, since most of the time, we
@@ -2686,13 +2683,13 @@ the broken-down class name of the item to insert."
 
 (defun typescript--pitem-add-child (pitem child)
   "Copy `typescript--pitem' PITEM, and push CHILD onto its list of children."
-  (assert (integerp (typescript--pitem-h-begin child)))
-  (assert (if (consp (typescript--pitem-name child))
-              (loop for part in (typescript--pitem-name child)
+  (cl-assert (integerp (typescript--pitem-h-begin child)))
+  (cl-assert (if (consp (typescript--pitem-name child))
+              (cl-loop for part in (typescript--pitem-name child)
                     always (stringp part))
             t))
 
-  ;; This trick works because we know (based on our defstructs) that
+  ;; This trick works because we know (based on our cl-defstructs) that
   ;; the child list is always the first element, and so the second
   ;; element and beyond can be shared when we make our "copy".
   (cons
@@ -2711,7 +2708,7 @@ the broken-down class name of the item to insert."
             ;; name is a list here because down in
             ;; `typescript--ensure-cache', we made sure to only add
             ;; class entries with lists for :name
-            (assert (consp name))
+            (cl-assert (consp name))
             (typescript--splice-into-items (car pitem) child name))
 
            (t
@@ -2787,8 +2784,7 @@ the broken-down class name of the item to insert."
    "\\([[:digit:]]+\\)"
    "\\]: "
    ;; message
-   ".*$"
-   )
+   ".*$")
   "Regexp to match reports generated by tslint.")
 
 (dolist
