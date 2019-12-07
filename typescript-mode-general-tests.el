@@ -326,7 +326,8 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
 class Foo<T> extends Bar {\n
 private async innerExecuteAsync<TResponse extends Response, TValue>(endpoint: string, data?: any): Promise<TResponse> {\n
 innerExecuteAsync(x: string, y: boolean, z: number, j?: any): Promise<FResponse> {\n
-console.log(this.methodCall())"
+console.log(this.methodCall());\n
+snake_cased_function(1, 2, 3)"
     '(("@decorator" . font-lock-function-name-face)
       ("Foo" . font-lock-type-face)
       ("private" . typescript-access-modifier-face)
@@ -335,6 +336,7 @@ console.log(this.methodCall())"
       ("console" . font-lock-type-face)
       ("this" . typescript-this-face)
       ("methodCall" . font-lock-function-name-face)
+      ("snake_cased_function" . font-lock-function-name-face)
       (("string" "boolean" "number" "any") . typescript-primitive-face)
       (("endpoint" "data") . nil)
       (("<" ">" ",") . nil))))
