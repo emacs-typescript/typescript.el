@@ -2830,6 +2830,8 @@ Key bindings:
 
   (setq-local electric-indent-chars
 	      (append "{}():;," electric-indent-chars))
+  (setq-local electric-layout-rules
+	      '((?\; . after) (?\{ . after) (?\} . before)))
 
   (let ((c-buffer-is-cc-mode t))
     ;; FIXME: These are normally set by `c-basic-common-init'.  Should
