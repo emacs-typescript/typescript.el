@@ -743,28 +743,11 @@ the string from a plain string to a template."
 
 (defvar typescript-mode-map
   (let ((keymap (make-sparse-keymap)))
-    (dolist (key '("{" "}" "(" ")" ":" ";" ","))
-      (define-key keymap key #'typescript-insert-and-indent))
     (dolist (key '("\"" "\'"))
       (define-key keymap key #'typescript-insert-and-autoconvert-to-template))
     (define-key keymap (kbd "C-c '") #'typescript-convert-to-template)
     keymap)
   "Keymap for `typescript-mode'.")
-
-(defun typescript-insert-and-indent (key)
-  "Run the command bound to KEY, and indent if necessary.
-Indentation does not take place if point is in a string or
-comment."
-  (interactive (list (this-command-keys)))
-  (call-interactively (lookup-key (current-global-map) key))
-  (let ((syntax (save-restriction (widen) (syntax-ppss))))
-    (when (or (and (not (nth 8 syntax))
-                   typescript-auto-indent-flag)
-              (and (nth 4 syntax)
-                   (eq (current-column)
-                       (1+ (current-indentation)))))
-      (indent-according-to-mode))))
-(put 'typescript-insert-and-indent 'delete-selection t)
 
 (defun typescript-insert-and-autoconvert-to-template (key)
   "Run the command bount to KEY, and autoconvert to template if necessary."
@@ -2844,6 +2827,9 @@ Key bindings:
         c-line-comment-starter "//"
         c-comment-start-regexp "/[*/]\\|\\s!"
         comment-start-skip "\\(//+\\|/\\*+\\)\\s *")
+
+  (setq-local electric-indent-chars
+	      (append "{}():;," electric-indent-chars))
 
   (let ((c-buffer-is-cc-mode t))
     ;; FIXME: These are normally set by `c-basic-common-init'.  Should
