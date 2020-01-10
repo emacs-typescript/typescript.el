@@ -743,19 +743,16 @@ the string from a plain string to a template."
 
 (defvar typescript-mode-map
   (let ((keymap (make-sparse-keymap)))
-    (dolist (key '("\"" "\'"))
-      (define-key keymap key #'typescript-insert-and-autoconvert-to-template))
     (define-key keymap (kbd "C-c '") #'typescript-convert-to-template)
     keymap)
   "Keymap for `typescript-mode'.")
 
-(defun typescript-insert-and-autoconvert-to-template (key)
-  "Run the command bount to KEY, and autoconvert to template if necessary."
-  (interactive (list (this-command-keys)))
-  (call-interactively (lookup-key (current-global-map) key))
-  (when typescript-autoconvert-to-template-flag
+(defun typescript--post-self-insert-function ()
+  (when (and (derived-mode-p 'typescript-mode)
+             typescript-autoconvert-to-template-flag
+             (or (eq last-command-event ?\')
+                 (eq last-command-event ?\")))
     (typescript-autoconvert-to-template)))
-(put 'typescript-insert-and-autoconvert-to-template 'delete-selection t)
 
 ;;; Syntax table and parsing
 
@@ -2842,6 +2839,9 @@ Key bindings:
     (make-local-variable 'adaptive-fill-mode)
     (make-local-variable 'adaptive-fill-regexp)
     (c-setup-paragraph-variables))
+
+  (add-hook 'post-self-insert-hook
+            #'typescript--post-self-insert-function)
 
   (setq-local syntax-begin-function #'typescript--syntax-begin-function))
 
