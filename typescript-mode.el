@@ -1997,6 +1997,18 @@ This performs fontification according to `typescript--class-styles'."
             '(end-of-line)
             '(1 font-lock-type-face)))
 
+    ;; type-highlighting in variable/parameter declarations
+    ;; supports a small variety of common declarations:
+    ;; - let a: SomeType;
+    ;; - private b: SomeType;
+    ;; - private someFunc(var: SomeType) {
+    ;; - private array: SomeType[]
+    ;; - private generic: SomeType<Foo>
+    ;; - private genericArray: SomeType<Foo>[]
+    ;; - function testFunc(): SomeType<> {
+    (":\\s-\\([A-Z][A-Za-z0-9]+\\)\\(<[A-Z][A-Za-z0-9]+>\\)?\\(\[\]\\)?\\([,;]\\)?\\s-*{?"
+     (1 'font-lock-type-face))
+
     ;; highlights that append to previous levels
     ;;
     ,@typescript--font-lock-keywords-3
