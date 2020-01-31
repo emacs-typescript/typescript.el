@@ -2009,6 +2009,10 @@ This performs fontification according to `typescript--class-styles'."
     (":\\s-\\([A-Z][A-Za-z0-9]+\\)\\(<[A-Z][A-Za-z0-9]+>\\)?\\(\[\]\\)?\\([,;]\\)?\\s-*{?"
      (1 'font-lock-type-face))
 
+    ;; type-casts
+    ("<\\([A-Z][A-Za-z0-9]+\\)>"
+     (1 'font-lock-type-face))
+
     ;; highlights that append to previous levels
     ;;
     ,@typescript--font-lock-keywords-3
