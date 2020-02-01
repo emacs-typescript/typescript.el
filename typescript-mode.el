@@ -294,13 +294,13 @@ Match group 1 is MUMBLE.")
 
 (defconst typescript--font-lock-keywords-2
   (append typescript--font-lock-keywords-1
-          (list (list typescript--keyword-re 1 font-lock-keyword-face)
+          (list (cons typescript--constant-re font-lock-constant-face)
+                (list typescript--keyword-re 1 font-lock-keyword-face)
                 (list "\\_<for\\_>"
                       "\\s-+\\(each\\)\\_>" nil nil
                       (list 1 'font-lock-keyword-face))
                 (cons "\\_<yield\\(\\*\\|\\_>\\)" 'font-lock-keyword-face)
-                (cons typescript--basic-type-re font-lock-type-face)
-                (cons typescript--constant-re font-lock-constant-face)))
+                (cons typescript--basic-type-re font-lock-type-face)))
   "Level two font lock keywords for `typescript-mode'.")
 
 ;; typescript--pitem is the basic building block of the lexical
