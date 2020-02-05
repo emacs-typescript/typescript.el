@@ -663,3 +663,57 @@ let $img2: JQuery<HTMLImageElement> = null
 if (variable != null) {
     //
 }
+
+// The following block deals with strings of member expressions on so-called
+// "fluent" APIs.
+interface Fnord {
+    log(...args: any[]): this;
+    blah(): this;
+}
+
+let fnord: Fnord = {} as any;
+
+{
+    fnord
+        .log("sdf")
+        .blah();
+
+    const m =
+        fnord
+            .log()
+            .blah();
+
+    const b = { q: 1, f: 2}
+
+    const x =
+        fnord
+            .log({ a: b.q, z: b.f })
+            .blah();
+
+    (async () => {
+        const x = (
+            await (fnord as any)
+                .log(1));
+    })();
+}
+
+fnord
+    .log("sdf")
+    .blah();
+
+const m =
+    fnord
+        .log()
+        .blah();
+
+fnord
+    .log("sdf")
+
+const q =
+    fnord
+        .log();
+
+// This is a continued expression in parentheses.
+const blip999 = (window.location.href === "fnord" ?
+    "a" :
+    "b");
