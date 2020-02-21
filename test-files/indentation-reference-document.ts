@@ -717,3 +717,10 @@ const q =
 const blip999 = (window.location.href === "fnord" ?
     "a" :
     "b");
+
+// The following case is purposely not correct TS code. It tests against an
+// infinite loop that would occur when the mode was asked to indent such
+// incorrect syntax.
+if (true) {
+    .bleh();
+}
