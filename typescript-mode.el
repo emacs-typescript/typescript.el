@@ -2244,19 +2244,31 @@ Searches specifically for any of \"=\", \"}\", and \"type\"."
   "Return non-nil if the current line continues an expression."
   (save-excursion
     (back-to-indentation)
-    (and
-     ;; Don't identify the spread syntax or rest operator as a
-     ;; "continuation".
-     (not (looking-at "\\.\\.\\."))
-     (or (typescript--looking-at-operator-p)
-         (and (progn
-                (typescript--backward-syntactic-ws)
-                (or (bobp) (backward-char))
-                (and (> (point) (point-min))
-                     (save-excursion (backward-char) (not (looking-at "[/*]/")))
-                     (typescript--looking-at-operator-p)
-                     (and (progn (backward-char)
-                                 (not (looking-at "++\\|--\\|/[/*]")))))))))))
+    (let ((list-start (nth 1 (syntax-ppss))))
+      (and
+       ;; This not clause is there to eliminate degenerate cases where we have
+       ;; something that looks like a continued expression but we are in fact at
+       ;; the beginning of the expression. Example: in `if (a) { .q(1)` when the
+       ;; point is on the dot, the expression that follows looks like a member
+       ;; expression but the object on which it is a member is missing. If we
+       ;; naively treat this as a continued expression, we run into trouble
+       ;; later. (An infinite loop.)
+       (not (and list-start
+                 (save-excursion
+                   (typescript--backward-syntactic-ws)
+                   (backward-char)
+                   (eq (point) list-start))))
+       ;; Don't identify the spread syntax or rest operator as a "continuation".
+       (not (looking-at "\\.\\.\\."))
+       (or (typescript--looking-at-operator-p)
+           (and (progn
+                  (typescript--backward-syntactic-ws)
+                  (or (bobp) (backward-char))
+                  (and (> (point) (point-min))
+                       (save-excursion (backward-char) (not (looking-at "[/*]/")))
+                       (typescript--looking-at-operator-p)
+                       (and (progn (backward-char)
+                                   (not (looking-at "++\\|--\\|/[/*]"))))))))))))
 
 (cl-defun typescript--compute-member-expression-indent ()
   "Determine the indent of a member expression.
