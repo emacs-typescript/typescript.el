@@ -725,6 +725,18 @@ if (true) {
     .bleh();
 }
 
+const m =
+    fnord<string, number>()
+        .log<number, string>()
+        .blah();
+
+// This next expression is purposely not correct TS code. The missing parens
+// after fnord would trigger an infinite loop in earlier implementations.
+const m =
+    fnord<string, unknown>
+        .log<number, string>()
+        .blah();
+
 ) {
     1 + 2; // Indenting this line would cause an infinite loop
 }
