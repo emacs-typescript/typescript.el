@@ -724,3 +724,7 @@ const blip999 = (window.location.href === "fnord" ?
 if (true) {
     .bleh();
 }
+
+) {
+    1 + 2; // Indenting this line would cause an infinite loop
+}
