@@ -2432,7 +2432,7 @@ moved on success."
                                  (looking-at "\\_<\\(switch\\|if\\|while\\|until\\|for\\)\\_>\\(?:\\s-\\|\n\\)*(")))))
                     (condition-case nil
                         (backward-sexp)
-                      (scan-error nil)))
+                      (scan-error (cl-return-from search-loop nil))))
                    ((looking-back typescript--number-literal-re
                                   ;; We limit the search back to the previous space or end of line (if possible)
                                   ;; to prevent the search from going over the whole buffer.
