@@ -2478,7 +2478,9 @@ moved on success."
                        ;; In that case, we want the code that follows to see the indentation
                        ;; that was in effect at the beginning of the function declaration, and thus
                        ;; we want to move back over the list of function parameters.
-                       (backward-list))
+                       (condition-case nil
+                           (backward-list)
+                         (error nil)))
                       ((looking-back "," nil)
                        ;; If we get here, we have a comma, spaces and an opening curly brace. (And
                        ;; (point) is just after the comma.) We don't want to move from the current position
