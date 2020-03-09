@@ -63,7 +63,7 @@
 
 ;;; Constants
 
-(defconst typescript--type-name-re "[A-Z][A-Za-z0-9]+"
+(defconst typescript--type-name-re "\\(?:[A-Z][A-Za-z0-9]+\\.\\)\\{0,\\}\\(?:[A-Z][A-Za-z0-9]+\\)"
   "Regexp matching a conventional TypeScript type-name.  Must start with upper-case letter!")
 
 (defconst typescript--name-start-re "[a-zA-Z_$]"

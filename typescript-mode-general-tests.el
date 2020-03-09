@@ -512,6 +512,32 @@ function foo<Z, Y, Z & Y, Z | Y | Z, Y<X<X, Y>>>()\n"
     (should (eq (get-face-at "SomeType") 'font-lock-type-face))
     (should (eq (get-face-at "Foo") 'font-lock-type-face))))
 
+(ert-deftest font-lock/type-names-level4-namespaces ()
+  "Namespaced Typenames should be highlighted in declarations"
+  (test-with-fontified-buffer
+      "private b: Namespaced.ClassName;"
+    (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
+    (should (eq (get-face-at "ClassName") 'font-lock-type-face)))
+  (test-with-fontified-buffer
+      "function test(var1: Namespaced.ClassName): RetType {\n}"
+    (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
+    (should (eq (get-face-at "ClassName") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "class Foo { test(var1: Namespaced.ClassName): RetType {\n}"
+    (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
+    (should (eq (get-face-at "ClassName") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "function test(var1: Type): Namespaced.ClassName {\n}"
+    (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
+    (should (eq (get-face-at "ClassName") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "class Foo { test(var1: Type): Namespaced.ClassName {\n}"
+    (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
+    (should (eq (get-face-at "ClassName") 'font-lock-type-face))))
+
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
 `typescript--flyspell-mode-predicate'.  `SEARCH-FOR' is a string
