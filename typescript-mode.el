@@ -63,6 +63,9 @@
 
 ;;; Constants
 
+(defconst typescript--type-name-re "[A-Z][A-Za-z0-9]+"
+  "Regexp matching a conventional TypeScript type-name.  Must start with upper-case letter!")
+
 (defconst typescript--name-start-re "[a-zA-Z_$]"
   "Regexp matching the start of a typescript identifier, without grouping.")
 
@@ -2006,12 +2009,15 @@ This performs fontification according to `typescript--class-styles'."
     ;; - private generic: SomeType<Foo>
     ;; - private genericArray: SomeType<Foo>[]
     ;; - function testFunc(): SomeType<> {
-    (":\\s-\\([A-Z][A-Za-z0-9]+\\)\\(<[A-Z][A-Za-z0-9]+>\\)?\\(\[\]\\)?\\([,;]\\)?\\s-*{?"
-     (1 'font-lock-type-face))
+    ;; TODO: namespaced classes!
+    ,(list
+      (concat ":\\s-\\(" typescript--type-name-re "\\)\\(<" typescript--type-name-re ">\\)?\\(\[\]\\)?\\([,;]\\)?\\s-*{?")
+      '(1 'font-lock-type-face))
 
     ;; type-casts
-    ("<\\([A-Z][A-Za-z0-9]+\\)>"
-     (1 'font-lock-type-face))
+    ,(list
+      (concat "<\\(" typescript--type-name-re "\\)>")
+      '(1 'font-lock-type-face))
 
     ;; highlights that append to previous levels
     ;;
