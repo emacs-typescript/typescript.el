@@ -464,6 +464,80 @@ function foo<Z, Y, Z & Y, Z | Y | Z, Y<X<X, Y>>>()\n"
       "type Thing = number;"
     (should (eq (get-face-at "Thing") 'font-lock-type-face))))
 
+(ert-deftest font-lock/type-names-level4 ()
+  "Typenames should be highlighted in declarations"
+
+  (test-with-fontified-buffer
+      "function test(var1: Type1, var2: Type2): RetType {\n}"
+    (should (not (eq (get-face-at "var1") 'font-lock-type-face)))
+    (should (eq (get-face-at "Type1") 'font-lock-type-face))
+    (should (not (eq (get-face-at "var2") 'font-lock-type-face)))
+    (should (eq (get-face-at "Type2") 'font-lock-type-face))
+    (should (eq (get-face-at "RetType") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "class foo { test(var1: Type1, var2: Type2): RetType {\n} }"
+    (should (not (eq (get-face-at "var1") 'font-lock-type-face)))
+    (should (eq (get-face-at "Type1") 'font-lock-type-face))
+    (should (not (eq (get-face-at "var2") 'font-lock-type-face)))
+    (should (eq (get-face-at "Type2") 'font-lock-type-face))
+    (should (eq (get-face-at "RetType") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "let a: SomeType;"
+    (should (eq (get-face-at "SomeType") 'font-lock-type-face)))
+  (test-with-fontified-buffer
+      "private b: SomeType;"
+    (should (eq (get-face-at "SomeType") 'font-lock-type-face)))
+  (test-with-fontified-buffer
+      "private someArray: SomeType[];"
+    (should (eq (get-face-at "SomeType") 'font-lock-type-face)))
+  (test-with-fontified-buffer
+      "private generic: SomeType<Foo>;"
+    (should (eq (get-face-at "SomeType") 'font-lock-type-face))
+    (should (eq (get-face-at "Foo") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "private genericArray: SomeType<Foo>[];"
+    (should (eq (get-face-at "SomeType") 'font-lock-type-face))
+    (should (eq (get-face-at "Foo") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "private genericArray2: SomeType<Foo[]>;"
+    (should (eq (get-face-at "SomeType") 'font-lock-type-face))
+    (should (eq (get-face-at "Foo") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "private genericArray3: SomeType<Foo[]>[];"
+    (should (eq (get-face-at "SomeType") 'font-lock-type-face))
+    (should (eq (get-face-at "Foo") 'font-lock-type-face))))
+
+(ert-deftest font-lock/type-names-level4-namespaces ()
+  "Namespaced Typenames should be highlighted in declarations"
+  (test-with-fontified-buffer
+      "private b: Namespaced.ClassName;"
+    (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
+    (should (eq (get-face-at "ClassName") 'font-lock-type-face)))
+  (test-with-fontified-buffer
+      "function test(var1: Namespaced.ClassName): RetType {\n}"
+    (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
+    (should (eq (get-face-at "ClassName") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "class Foo { test(var1: Namespaced.ClassName): RetType {\n}"
+    (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
+    (should (eq (get-face-at "ClassName") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "function test(var1: Type): Namespaced.ClassName {\n}"
+    (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
+    (should (eq (get-face-at "ClassName") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "class Foo { test(var1: Type): Namespaced.ClassName {\n}"
+    (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
+    (should (eq (get-face-at "ClassName") 'font-lock-type-face))))
+
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
 `typescript--flyspell-mode-predicate'.  `SEARCH-FOR' is a string
