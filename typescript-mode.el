@@ -1414,7 +1414,6 @@ LIMIT defaults to point."
 
 (defun typescript--end-of-defun-nested ()
   "Helper function for `typescript-end-of-defun'."
-  (message "test")
   (let* (pitem
          (this-end (save-excursion
                      (and (setq pitem (typescript--beginning-of-defun-nested))
