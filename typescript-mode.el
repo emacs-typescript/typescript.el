@@ -263,17 +263,25 @@ Match group 1 is MUMBLE.")
   "Like `regexp-opt', but surround the result with `\\\\_<' and `\\\\_>'."
   (concat "\\_<" (regexp-opt list t) "\\_>"))
 
+(defconst typescript--keywords-default
+  '("abstract" "any" "as" "async" "await" "boolean" "bigint" "break" "case" "catch" "class" "const"
+    "constructor" "continue" "declare" "default" "delete" "do" "else"
+    "enum" "export" "extends" "extern" "false" "finally" "for"
+    "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
+    "interface" "keyof" "let" "module" "namespace" "never" "new" "null" "number" "object" "of"
+    "private" "protected" "public" "readonly" "return" "set" "static" "string"
+    "super" "switch"  "this" "throw" "true"
+    "try" "type" "typeof" "unknown" "var" "void"
+    "while"))
+
+(defcustom typescript--keywords typescript--keywords-default
+  "List of strings to be considered as keywords."
+  :type 'list
+  :safe 'list
+  :group 'typescript)
+
 (defconst typescript--keyword-re
-  (typescript--regexp-opt-symbol
-   '("abstract" "any" "as" "async" "await" "boolean" "bigint" "break" "case" "catch" "class" "const"
-     "constructor" "continue" "declare" "default" "delete" "do" "else"
-     "enum" "export" "extends" "extern" "false" "finally" "for"
-     "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
-     "interface" "keyof" "let" "module" "namespace" "never" "new" "null" "number" "object" "of"
-     "private" "protected" "public" "readonly" "return" "set" "static" "string"
-     "super" "switch"  "this" "throw" "true"
-     "try" "type" "typeof" "unknown" "var" "void"
-     "while")) ; yield is handled separately
+  (typescript--regexp-opt-symbol typescript--keywords) ; yield is handled separately
   "Regexp matching any typescript keyword.")
 
 (defconst typescript--basic-type-re
