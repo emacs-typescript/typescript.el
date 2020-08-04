@@ -653,6 +653,11 @@ replicate tsserver behaviour. Indent level is taken to be
   :type 'boolean
   :group 'typescript)
 
+(defcustom typescript-indent-list-items t
+  "Enable indenting of list items, useful for certain code styles."
+  :type 'boolean
+  :group 'typescript)
+
 (defcustom typescript-auto-indent-flag t
   "Whether to automatically indent when typing punctuation characters.
 If non-nil, the characters {}();,: also indent the current line
@@ -2535,7 +2540,8 @@ moved on success."
                        (if (and in-switch-p typescript-indent-switch-clauses)
                            (+ indent typescript-indent-level)
                          indent)))
-                 (unless same-indent-p
+                 (when (and (not same-indent-p)
+                            typescript-indent-list-items)
                    (forward-char)
                    (skip-chars-forward " \t"))
                  (if continued-expr-p
