@@ -432,8 +432,8 @@ For more information about how to write `SPECS', see `font-lock-test'."
      ;; ("{ExampleExtended1}" . typescript-jsdoc-type)
      )))
 
-(ert-deftest jsdoc/async-tag-in-multiline-doc-comment-with-meaningless-cases ()
-  "Test for meaningless though valid usage of @async tags and its alias."
+(ert-deftest jsdoc/augments-tag-in-multiline-doc-comment-with-meaningless-cases ()
+  "Test for meaningless though valid usage of @augments tags and its alias."
   (jsdoc-multiline-test
    '(
      "@augments {ExampleAugmented0} extra augments value"
