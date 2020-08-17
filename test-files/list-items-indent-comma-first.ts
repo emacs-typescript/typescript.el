@@ -15,8 +15,8 @@ const depth = { arr: [ 'one'
                      , b: 222
                      , c: 333 }
               , func_call: Object.assign
-                           ( {}
-                           , { x: 1
-                             , y: 2
-                             , z: 3 }
-                           , { i: 'i', j: 'j' } ) };
+              ( {}
+              , { x: 1
+                , y: 2
+                , z: 3 }
+              , { i: 'i', j: 'j' } ) };
