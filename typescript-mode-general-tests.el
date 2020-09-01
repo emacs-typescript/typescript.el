@@ -65,7 +65,7 @@
     (typescript-mode)
     (let ((test-reference (typescript-test-get-doc)))
       (typescript-test-indent-all)
-      (should (not (string= test-reference (typescript-test-get-doc)))))
+      (should-not (string= test-reference (typescript-test-get-doc))))
     (kill-buffer)))
 
 (ert-deftest list-items-indent-comma-first ()
@@ -83,7 +83,7 @@
     (let ((test-reference (typescript-test-get-doc))
           (typescript-indent-list-items nil))
       (typescript-test-indent-all)
-      (should (not (string= test-reference (typescript-test-get-doc)))))
+      (should-not (string= test-reference (typescript-test-get-doc))))
     (kill-buffer)))
 
 (defun get-all-matched-strings (to-match)
@@ -101,8 +101,8 @@ have a rule name or a severity."
                               to-match))
          (matches (and match (get-all-matched-strings to-match))))
     (should match)
-    (should (not (nth 1 matches)))
-    (should (not (nth 2 matches)))
+    (should-not (nth 1 matches))
+    (should-not (nth 2 matches))
     (should (string-equal (nth 3 matches)
                           "src/modules/authenticator.ts"))
     (should (string-equal (nth 4 matches) "1"))
@@ -117,7 +117,7 @@ a rule name, no severity."
                               to-match))
          (matches (and match (get-all-matched-strings to-match))))
     (should match)
-    (should (not (nth 1 matches)))
+    (should-not (nth 1 matches))
     (should (string-equal (nth 2 matches) "(quotemark) "))
     (should (string-equal (nth 3 matches)
                           "src/modules/authenticator.ts"))
@@ -133,8 +133,8 @@ a severity set to ERROR, no rule name."
                               to-match))
          (matches (and match (get-all-matched-strings to-match))))
     (should match)
-    (should (not (nth 1 matches)))
-    (should (not (nth 2 matches)))
+    (should-not (nth 1 matches))
+    (should-not (nth 2 matches))
     (should (string-equal (nth 3 matches)
                           "src/modules/authenticator.ts"))
     (should (string-equal (nth 4 matches) "1"))
@@ -150,7 +150,7 @@ a severity set to WARNING, no rule name."
          (matches (and match (get-all-matched-strings to-match))))
     (should match)
     (should (string-equal (nth 1 matches) "WARNING"))
-    (should (not (nth 2 matches)))
+    (should-not (nth 2 matches))
     (should (string-equal (nth 3 matches)
                           "src/modules/authenticator.ts"))
     (should (string-equal (nth 4 matches) "1"))
@@ -486,7 +486,7 @@ function foo<Z, Y, Z & Y, Z | Y | Z, Y<X<X, Y>>>()\n"
   ;; Ensure we require symbol boundaries.
   (test-with-fontified-buffer
       "Notclass Foo"
-    (should (not (eq (get-face-at "Foo") 'font-lock-type-face))))
+    (should-not (eq (get-face-at "Foo") 'font-lock-type-face)))
   ;; Other common ways of defining types.
   (test-with-fontified-buffer
       "interface Thing {}"
@@ -503,17 +503,17 @@ function foo<Z, Y, Z & Y, Z | Y | Z, Y<X<X, Y>>>()\n"
 
   (test-with-fontified-buffer
       "function test(var1: Type1, var2: Type2): RetType {\n}"
-    (should (not (eq (get-face-at "var1") 'font-lock-type-face)))
+    (should-not (eq (get-face-at "var1") 'font-lock-type-face))
     (should (eq (get-face-at "Type1") 'font-lock-type-face))
-    (should (not (eq (get-face-at "var2") 'font-lock-type-face)))
+    (should-not (eq (get-face-at "var2") 'font-lock-type-face))
     (should (eq (get-face-at "Type2") 'font-lock-type-face))
     (should (eq (get-face-at "RetType") 'font-lock-type-face)))
 
   (test-with-fontified-buffer
       "class foo { test(var1: Type1, var2: Type2): RetType {\n} }"
-    (should (not (eq (get-face-at "var1") 'font-lock-type-face)))
+    (should-not (eq (get-face-at "var1") 'font-lock-type-face))
     (should (eq (get-face-at "Type1") 'font-lock-type-face))
-    (should (not (eq (get-face-at "var2") 'font-lock-type-face)))
+    (should-not (eq (get-face-at "var2") 'font-lock-type-face))
     (should (eq (get-face-at "Type2") 'font-lock-type-face))
     (should (eq (get-face-at "RetType") 'font-lock-type-face)))
 
@@ -598,10 +598,10 @@ import... from...."
     ;; replicate that behavior here.
     (test-with-fontified-buffer
      "import 'a';\nimport { x } from 'b';\nconst foo = 'c';import { x }\nfrom 'd';"
-     (should (not (flyspell-predicate-test "'a")))
-     (should (not (flyspell-predicate-test "'b")))
+     (should-not (flyspell-predicate-test "'a"))
+     (should-not (flyspell-predicate-test "'b"))
      (should (flyspell-predicate-test "'c"))
-     (should (not (flyspell-predicate-test "'d"))))
+     (should-not (flyspell-predicate-test "'d")))
     (test-with-fontified-buffer
      ;; This is valid TypeScript.
      "const from = 'a';"
@@ -619,7 +619,7 @@ import... from...."
   (cl-flet
       ((should-fail ()
                     (let ((point-before (point)))
-                      (should (not (typescript--move-to-end-of-plain-string)))
+                      (should-not (typescript--move-to-end-of-plain-string))
                       (should (eq (point) point-before))))
        (should-not-fail (expected)
                         (let ((result (typescript--move-to-end-of-plain-string)))
