@@ -19,7 +19,8 @@
   (untabify (point-min) (point-max)))
 
 (ert-deftest indentation-reference-document-is-reflowed-correctly ()
-  (let ((buffer (find-file "test-files/indentation-reference-document.ts")))
+  (with-temp-buffer
+    (insert-file-contents "test-files/indentation-reference-document.ts")
     ;; double ensure mode is active
     (typescript-mode)
 
@@ -30,61 +31,60 @@
       (let ((typescript-indent-switch-clauses nil))
         (typescript-test-indent-all)
         (should (string-equal test-reference
-                              (typescript-test-get-doc)))))
-    (kill-buffer buffer)))
+                              (typescript-test-get-doc)))))))
 
 (ert-deftest switch-case-indent-default ()
-  (let ((buffer (find-file "test-files/switch-case-indent-default.ts")))
+  (with-temp-buffer
+    (insert-file-contents "test-files/switch-case-indent-default.ts")
     (typescript-mode)
     (let ((test-reference (typescript-test-get-doc)))
       (typescript-test-indent-all)
       (should (string-equal test-reference
-                            (typescript-test-get-doc))))
-    (kill-buffer buffer)))
+                            (typescript-test-get-doc))))))
 
 (ert-deftest switch-case-indent-disabled ()
-  (let ((buffer (find-file "test-files/switch-case-indent-disabled.ts"))
-        (typescript-indent-switch-clauses nil))
-    (typescript-mode)
-    (let ((test-reference (typescript-test-get-doc)))
-      (typescript-test-indent-all)
-      (should (string-equal test-reference
-                            (typescript-test-get-doc))))
-    (kill-buffer buffer)))
+  (with-temp-buffer
+    (insert-file-contents "test-files/switch-case-indent-disabled.ts")
+    (let ((typescript-indent-switch-clauses nil))
+      (typescript-mode)
+      (let ((test-reference (typescript-test-get-doc)))
+        (typescript-test-indent-all)
+        (should (string-equal test-reference
+                              (typescript-test-get-doc)))))))
 
 (ert-deftest list-items-indent-default ()
-  (with-current-buffer (find-file "test-files/list-items-indent-default.ts")
+  (with-temp-buffer
+    (insert-file-contents "test-files/list-items-indent-default.ts")
     (typescript-mode)
     (let ((test-reference (typescript-test-get-doc)))
       (typescript-test-indent-all)
-      (should (string= test-reference (typescript-test-get-doc))))
-    (kill-buffer)))
+      (should (string= test-reference (typescript-test-get-doc))))))
 
 (ert-deftest list-items-indent-default-not-comma-first ()
-  (with-current-buffer (find-file "test-files/list-items-indent-comma-first.ts")
+  (with-temp-buffer
+    (insert-file-contents "test-files/list-items-indent-comma-first.ts")
     (typescript-mode)
     (let ((test-reference (typescript-test-get-doc)))
       (typescript-test-indent-all)
-      (should-not (string= test-reference (typescript-test-get-doc))))
-    (kill-buffer)))
+      (should-not (string= test-reference (typescript-test-get-doc))))))
 
 (ert-deftest list-items-indent-comma-first ()
-  (with-current-buffer (find-file "test-files/list-items-indent-comma-first.ts")
+  (with-temp-buffer
+    (insert-file-contents "test-files/list-items-indent-comma-first.ts")
     (typescript-mode)
     (let ((test-reference (typescript-test-get-doc))
           (typescript-indent-list-items nil))
       (typescript-test-indent-all)
-      (should (string= test-reference (typescript-test-get-doc))))
-    (kill-buffer)))
+      (should (string= test-reference (typescript-test-get-doc))))))
 
 (ert-deftest list-items-indent-comma-first-not-default ()
-  (with-current-buffer (find-file "test-files/list-items-indent-default.ts")
+  (with-temp-buffer
+    (insert-file-contents "test-files/list-items-indent-default.ts")
     (typescript-mode)
     (let ((test-reference (typescript-test-get-doc))
           (typescript-indent-list-items nil))
       (typescript-test-indent-all)
-      (should-not (string= test-reference (typescript-test-get-doc))))
-    (kill-buffer)))
+      (should-not (string= test-reference (typescript-test-get-doc))))))
 
 (defun get-all-matched-strings (to-match)
   (let (result)
