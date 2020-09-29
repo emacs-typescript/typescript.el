@@ -2978,7 +2978,7 @@ Key bindings:
      (folding-add-to-marks-list 'typescript-mode "// {{{" "// }}}" )))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ts$" . typescript-mode))
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode))
 
 (provide 'typescript-mode)
 
