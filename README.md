@@ -1,6 +1,6 @@
 # typescript.el
 
-[![Build Status](https://api.travis-ci.org/emacs-typescript/typescript.el.svg?branch=master)](https://travis-ci.org/emacs-typescript/typescript.el)
+![Build & Test](https://github.com/emacs-typescript/typescript.el/workflows/Build%20&%20Test/badge.svg)
 
 `typescript.el` is major-mode for editing [Typescript](http://www.typescriptlang.org/)-files in [GNU Emacs](https://www.gnu.org/software/emacs/).
 
