@@ -69,6 +69,10 @@ news is that there's other packages which do!
 More advanced features can be provided by using these additional
 packages:
 
+* [lsp-mode](https://github.com/emacs-lsp/lsp-mode) - A standards-based
+  code-completion and refactoring backend, based on the
+  [Language Server Protocol (LSP)](https://langserver.org/).
+
 * [tide](https://github.com/ananthakumaran/tide/) - TypeScript
   Interactive Development Environment for Emacs
 * [ts-comint](https://github.com/josteink/ts-comint) - a Typescript REPL
