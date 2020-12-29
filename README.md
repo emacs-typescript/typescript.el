@@ -1,6 +1,8 @@
 # typescript.el
 
 ![Build & Test](https://github.com/emacs-typescript/typescript.el/workflows/Build%20&%20Test/badge.svg)
+[![MELPA](https://melpa.org/packages/typescript-mode-badge.svg)](https://melpa.org/#/typescript-mode)
+[![MELPA Stable](https://stable.melpa.org/packages/typescript-mode-badge.svg)](https://stable.melpa.org/#/typescript-mode)
 
 `typescript.el` is major-mode for editing [Typescript](http://www.typescriptlang.org/)-files in [GNU Emacs](https://www.gnu.org/software/emacs/).
 
