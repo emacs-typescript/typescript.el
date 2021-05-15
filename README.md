@@ -4,7 +4,7 @@
 [![MELPA](https://melpa.org/packages/typescript-mode-badge.svg)](https://melpa.org/#/typescript-mode)
 [![MELPA Stable](https://stable.melpa.org/packages/typescript-mode-badge.svg)](https://stable.melpa.org/#/typescript-mode)
 
-`typescript.el` is major-mode for editing [Typescript](http://www.typescriptlang.org/)-files in [GNU Emacs](https://www.gnu.org/software/emacs/).
+`typescript.el` is a major-mode for editing [Typescript](http://www.typescriptlang.org/)-files in [GNU Emacs](https://www.gnu.org/software/emacs/).
 
 `typescript.el` is a self-contained, lightweight and minimalist major-mode
 focused on providing basic font-lock/syntax-highlighting and
@@ -80,5 +80,5 @@ packages:
 * [ts-comint](https://github.com/josteink/ts-comint) - a Typescript REPL
   in Emacs.
 
-Initialization these with `typescript.el` will then become a matter of
+Initializing these with `typescript.el` will then become a matter of
 creating your own `typescript-mode-hook` in your `init.el` file.
