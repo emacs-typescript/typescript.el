@@ -21,7 +21,7 @@
 ;; -------------------------------------------------------------------------------------------
 
 ;; URL: http://github.com/ananthakumaran/typescript.el
-;; Version: 0.1
+;; Version: 0.4
 ;; Keywords: typescript languages
 ;; Package-Requires: ((emacs "24.3"))
 
