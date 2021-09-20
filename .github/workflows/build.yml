@@ -10,42 +10,28 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     name: Emacs - ${{ matrix.emacs }}
-    strategy: 
+    strategy:
       matrix:
-        emacs:
-        - emacs-26.1-travis-linux-xenial
-        - emacs-26.2-travis-linux-xenial
-        - emacs-26.3-travis-linux-xenial
-        - emacs-27.1-travis-linux-xenial
-        - emacs-git-snapshot-travis-linux-xenial
+        emacs: [26.1, 26.2, 26.3, 27.1, snapshot]
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Install EVM
-        run: |
-          git clone https://github.com/rejeep/evm.git ~/.evm
-          export PATH="$HOME/.evm/bin:$PATH"
-          evm config path /tmp
+      - uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matrix.emacs }}
 
-      - name: Install Emacs ${{ matrix.emacs }}
+      - name: paths
         run: |
-          export PATH="$HOME/.evm/bin:$PATH"
-          evm install ${{ matrix.emacs }} --use --skip
-
+          echo "$HOME/.cask/bin" >> $GITHUB_PATH
       - name: Install cask
         run: |
-          export PATH="$HOME/.evm/bin:$PATH"
           curl -fsSL https://raw.githubusercontent.com/cask/cask/master/go | python
-          export PATH="$HOME/.cask/bin:$PATH"
           cask
-
       - name: Run a multi-line script
         run: |
-          export PATH="$HOME/.evm/bin:$PATH"
-          export PATH="$HOME/.cask/bin:$PATH"
           emacs --version
           make test
