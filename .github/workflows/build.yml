@@ -9,28 +9,59 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-20.04
-    name: Emacs - ${{ matrix.emacs }}
+  unix-build:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        emacs: [26.1, 26.2, 26.3, 27.1, snapshot]
+        os: [ubuntu-latest, macos-latest]
+        emacs: [26.1, 26.2, 26.3, 27.1, 27.2, snapshot]
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.6"
+          architecture: "x64"
+
       - uses: purcell/setup-emacs@master
         with:
           version: ${{ matrix.emacs }}
 
+      - uses: conao3/setup-cask@master
+        with:
+          version: 0.8.4
+
       - name: paths
         run: |
           echo "$HOME/.cask/bin" >> $GITHUB_PATH
-      - name: Install cask
+      - name: Run a multi-line script
         run: |
-          curl -fsSL https://raw.githubusercontent.com/cask/cask/master/go | python
-          cask
+          emacs --version
+          make test
+  windows-build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        emacs: [26.1, 26.2, 26.3, 27.1, 27.2, snapshot]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.6"
+          architecture: "x64"
+
+      - uses: jcs090218/setup-emacs-windows@master
+        with:
+          version: ${{ matrix.emacs }}
+
+      - uses: conao3/setup-cask@master
+        with:
+          version: 0.8.4
+
       - name: Run a multi-line script
         run: |
           emacs --version
