@@ -992,11 +992,11 @@ one at the end of the line with \"let a\"."
   (let ((saved-point (point))
         (search-expr
          (cond ((null count)
-                '(typescript--re-search-backward-inner regexp bound 1))
+                `(typescript--re-search-backward-inner ,regexp ,bound 1))
                ((< count 0)
-                '(typescript--re-search-forward-inner regexp bound (- count)))
+                `(typescript--re-search-forward-inner ,regexp ,bound (- ,count)))
                ((> count 0)
-                '(typescript--re-search-backward-inner regexp bound count)))))
+                `(typescript--re-search-backward-inner ,regexp ,bound ,count)))))
     (condition-case err
         (eval search-expr)
       (search-failed

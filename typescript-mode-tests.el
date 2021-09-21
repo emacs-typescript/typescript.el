@@ -11,6 +11,7 @@
 (require 'typescript-mode-test-utilities)
 (require 'typescript-mode-general-tests)
 (require 'typescript-mode-jsdoc-tests)
+(require 'typescript-mode-lexical-binding-tests)
 
 (provide 'typescript-mode-tests)
 
