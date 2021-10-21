@@ -204,6 +204,14 @@ a severity set to WARNING, no rule name."
     (forward-char 1)
     (should (= 8 (current-column)))))
 
+(ert-deftest correctly-indents-dot-dot-after-exclamation ()
+  (with-temp-buffer
+    (ignore-errors (typescript-mode))
+    (insert "situation('8/8/8/8/8/8/8/R3K2R w - - 0 1')?.")
+    (forward-char -1)
+    (newline-and-indent)
+    (should (= 4 (current-column)))))
+
 (ert-deftest indentation-does-not-hang-on-multiline-string ()
   "Testcase for https://github.com/ananthakumaran/typescript.el/issues/20"
 
