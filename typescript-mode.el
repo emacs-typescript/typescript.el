@@ -2308,6 +2308,8 @@ starts the member expression.
     (typescript--backward-syntactic-ws)
     (while (eq (char-before) ?\;)
       (backward-char))
+    (when (memq (char-before) '(?\? ?\!))
+      (backward-char))
     (while (memq (char-before) '(?\] ?} ?\) ?>))
       (if (not (eq (char-before) ?>))
           (backward-list)
