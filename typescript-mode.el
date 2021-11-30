@@ -2946,6 +2946,7 @@ Key bindings:
         c-paragraph-start "$"
         c-paragraph-separate "$"
         c-block-comment-prefix "* "
+        c-block-comment-ender-regexp "\\*/"
         c-line-comment-starter "//"
         c-comment-start-regexp "/[*/]\\|\\s!"
         comment-start-skip "\\(//+\\|/\\*+\\)\\s *")
