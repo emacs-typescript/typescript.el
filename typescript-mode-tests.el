@@ -7,7 +7,7 @@
 
 (require 'ert)
 (require 'typescript-mode)
-(require 'cl)
+(require 'cl-lib)
 (require 'typescript-mode-test-utilities)
 (require 'typescript-mode-general-tests)
 (require 'typescript-mode-jsdoc-tests)

@@ -7,7 +7,7 @@
 
 (require 'ert)
 (require 'typescript-mode)
-(require 'cl)
+(require 'cl-lib)
 (require 'typescript-mode-test-utilities)
 
 (defun typescript-test-get-doc ()
