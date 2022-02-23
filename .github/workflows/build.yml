@@ -16,6 +16,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         experimental: [false]
+        emacs: [""]
         include:
         - emacs: 26.1
         - emacs: 26.2
