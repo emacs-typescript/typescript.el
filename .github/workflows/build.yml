@@ -15,7 +15,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        emacs: [26.1, 26.2, 26.3, 27.1, 27.2, snapshot]
+        experimental: [false]
+        include:
+        - emacs: 26.1
+        - emacs: 26.2
+        - emacs: 26.3
+        - emacs: 27.1
+        - emacs: 27.2
+        - emacs: snapshot
+          experimental: true
+    continue-on-error: ${{ matrix.experimental }}
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
