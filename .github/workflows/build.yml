@@ -12,6 +12,7 @@ jobs:
   unix-build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         emacs: [26.1, 26.2, 26.3, 27.1, 27.2, snapshot]
