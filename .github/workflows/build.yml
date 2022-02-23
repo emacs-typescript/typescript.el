@@ -16,13 +16,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         experimental: [false]
-        emacs: [""]
+        emacs: [26.1, 26.2, 26.3, 27.1, 27.2]
         include:
-        - emacs: 26.1
-        - emacs: 26.2
-        - emacs: 26.3
-        - emacs: 27.1
-        - emacs: 27.2
         - emacs: snapshot
           experimental: true
     continue-on-error: ${{ matrix.experimental }}
@@ -51,29 +46,30 @@ jobs:
         run: |
           emacs --version
           make test
-  windows-build:
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        emacs: [26.1, 26.2, 26.3, 27.1, 27.2, snapshot]
+          
+  # windows-build:
+  #   runs-on: windows-latest
+  #   strategy:
+  #     matrix:
+  #       emacs: [26.1, 26.2, 26.3, 27.1, 27.2, snapshot]
 
-    steps:
-      - uses: actions/checkout@v2
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - uses: actions/setup-python@v2
-        with:
-          python-version: "3.6"
-          architecture: "x64"
+  #     - uses: actions/setup-python@v2
+  #       with:
+  #         python-version: "3.6"
+  #         architecture: "x64"
 
-      - uses: jcs090218/setup-emacs-windows@master
-        with:
-          version: ${{ matrix.emacs }}
+  #     - uses: jcs090218/setup-emacs-windows@master
+  #       with:
+  #         version: ${{ matrix.emacs }}
 
-      - uses: conao3/setup-cask@master
-        with:
-          version: 0.8.4
+  #     - uses: conao3/setup-cask@master
+  #       with:
+  #         version: 0.8.4
 
-      - name: Run a multi-line script
-        run: |
-          emacs --version
-          make test
+  #     - name: Run a multi-line script
+  #       run: |
+  #         emacs --version
+  #         make test
