@@ -2911,7 +2911,7 @@ the broken-down class name of the item to insert."
 ;;; Main Function
 
 ;;;###autoload
-(define-derived-mode typescript-mode prog-mode "typescript"
+(define-derived-mode typescript-mode prog-mode "TypeScript"
   "Major mode for editing typescript.
 
 Key bindings:
