@@ -18,13 +18,13 @@ jobs:
         experimental: [false]
         emacs-version: [26.1, 26.2, 26.3, 27.1, 27.2, 28.1]
         include:
-        - emacs: snapshot
+        - emacs-version: snapshot
           experimental: true
           os: ubuntu-latest
-        - emacs: snapshot
+        - emacs-version: snapshot
           experimental: true
           os: macos-latest
-        - emacs: snapshot
+        - emacs-version: snapshot
           experimental: true
           os: windows-latest
     continue-on-error: ${{ matrix.experimental }}
