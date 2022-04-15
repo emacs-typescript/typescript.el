@@ -1,5 +1,5 @@
 EMACS ?= emacs
-CASK ?= cask
+EASK ?= eask
 ELS = \
   typescript-mode.el \
   typescript-mode-test-utilities.el \
@@ -11,10 +11,10 @@ ELCS = $(ELS:.el=.elc)
 clean:
 	rm -f $(ELCS)
 
-cask: clean
-	$(CASK) build
+eask: clean
+	$(EASK) build
 
-test: cask
+test: eask
 	+ $(EMACS) -Q -batch -L . -l typescript-mode-tests.el -f ert-run-tests-batch-and-exit
 
 # end
