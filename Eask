@@ -4,7 +4,17 @@
 
 (package-file "typescript-mode.el")
 
-(files "*.el")
+(files
+  "typescript-mode.el"
+  "typescript-mode-general-tests.el"
+  "typescript-mode-jsdoc-tests.el"
+  "typescript-mode-lexical-binding-tests.el"
+  "typescript-mode-tests.el"
+  "typescript-mode-test-utilities.el"
+  ;; "typescript-tree-sitter.el"
+  ;; "typescript-ts.el"
+  )
+
 
 (source "gnu")
 (source "melpa")

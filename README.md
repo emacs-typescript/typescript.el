@@ -82,3 +82,32 @@ packages:
 
 Initializing these with `typescript.el` will then become a matter of
 creating your own `typescript-mode-hook` in your `init.el` file.
+
+
+# Tree sitter integration
+For now we have integration with both tree-sitter implementations. The oldest
+one, the rust variant by @ubolonton is defined in `typescript-tree-sitter.el`,
+and the newer, emacs feature branch variant is defined in
+`typescript-ts.el`. The former requires the tree-sitter packages from MELPA, and
+the latter requires an emacs built from the feature/tree-sitter upstream branch.
+
+Steps to get things working for now:
+
+1. Get the tree sitter lib dependency for emacs:
+```
+git clone https://github.com/tree-sitter/tree-sitter.git
+cd tree-sitter
+make
+(sudo) make install
+```
+2. Get emacs from the feature branch:
+- `git clone -b feature/tree-sitter git://git.sv.gnu.org/emacs.git`
+- `cd emacs && make bootstrap && (sudo) make install`
+
+3. From the typescript repo
+- run `install-tsx.sh `. If this script doesn't work for you try to find some
+  guide on the interwebs and report back to me.
+- move the compiled file from `dist/` to `~/emacs/tree-sitter`
+
+4. enable `typescript-ts-mode` in some `.tsx` or `.ts` file and off you go
+
