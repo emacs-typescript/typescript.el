@@ -268,7 +268,7 @@ Match group 1 is MUMBLE.")
    '("abstract" "any" "as" "async" "await" "boolean" "bigint" "break" "case" "catch" "class" "const"
      "constructor" "continue" "debugger" "declare" "default" "delete" "do" "else"
      "enum" "export" "extends" "extern" "false" "finally" "for"
-     "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
+     "function" "from" "get" "goto" "if" "implements" "import" "in" "infer" "instanceof"
      "interface" "keyof" "let" "module" "namespace" "never" "new" "null" "number" "object" "of"
      "override" "private" "protected" "public" "readonly" "return" "set" "static" "string"
      "super" "switch"  "this" "throw" "true"
