@@ -1859,23 +1859,12 @@ and searches for the next token to be highlighted."
     ,(list
       (concat
        "\\_<function\\_>\\(\\s-+" typescript--name-re "\\)?\\s-*\\(<.*>\\)?\\s-*(\\s-*"
-       typescript--name-start-re)
-      (list (concat "\\(" typescript--name-re "\\)\\(\\s-*).*\\)?")
-            '(backward-char)
-            '(end-of-line)
-            '(1 font-lock-variable-name-face)))
-
-    ;; continued formal parameter list
-    ,(list
-      (concat
-       "^\\s-*" typescript--name-re "\\s-*[,)]")
-      (list typescript--name-re
-            '(if (save-excursion (backward-char)
-                                 (typescript--inside-param-list-p))
-                 (forward-symbol -1)
-               (end-of-line))
-            '(end-of-line)
-            '(0 font-lock-variable-name-face))))
+       "\\(?:$\\|" typescript--name-start-re "\\)")
+      `(,(concat "\\(" typescript--name-re "\\)\\(?:\\s-*?\\([,:)]\\|$\\)\\)")
+        (prog1 (save-excursion (re-search-forward ")" nil t))
+          (backward-char))
+        nil
+        (1 font-lock-variable-name-face))))
   "Level three font lock for `typescript-mode'.")
 
 (defun typescript--flyspell-mode-predicate ()
@@ -2929,6 +2918,7 @@ Key bindings:
   (setq-local end-of-defun-function 'typescript-end-of-defun)
   (setq-local open-paren-in-column-0-is-defun-start nil)
   (setq-local font-lock-defaults (list typescript--font-lock-keywords))
+  (setq-local font-lock-multiline t)
   (setq-local syntax-propertize-function #'typescript-syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)
   (setq-local parse-sexp-lookup-properties t)

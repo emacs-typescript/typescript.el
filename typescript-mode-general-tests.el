@@ -593,6 +593,70 @@ should be fontified as variable, keyword and type."
     (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
     (should (eq (get-face-at "ClassName") 'font-lock-type-face))))
 
+(ert-deftest font-lock/variables-in-declaration-multiline-with-types ()
+  "Variables should be highlighted in multiline declarations with types."
+  (test-with-fontified-buffer
+      "function test(
+var1: Type1,
+var2: Type2,
+): RetType {\n}"
+    (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "var2") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "Type1") 'font-lock-type-face))
+    (should (eq (get-face-at "Type2") 'font-lock-type-face))))
+
+(ert-deftest font-lock/variables-in-declaration-multiline-without-types ()
+  "Variables should be highlighted in multiline declarations without types."
+  (test-with-fontified-buffer
+      "function test(
+var1,
+var2,
+): RetType {\n}"
+    (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "var2") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/variables-in-declaration-multiline-no-hanging-paren ()
+  "Variables should be highlighted in multiline declarations with no hanging paren."
+  (test-with-fontified-buffer
+   "function test(
+var1,
+var2): RetType {\n}"
+   (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
+   (should (eq (get-face-at "var2") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/variables-in-declaration-multiline-ending-comma-no-hanging-paren ()
+  "Variables should be highlighted in multiline declarations with no hanging paren and trailing comma."
+  (test-with-fontified-buffer
+   "function test(
+var1,
+var2,): RetType {\n}"
+   (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
+   (should (eq (get-face-at "var2") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/variables-in-declaration-singleline-ending-comma-hanging-paren ()
+  "Variables should be highlighted in singleline declarations with hanging paren and trailing comma."
+  (test-with-fontified-buffer
+      "function test(var1,var2,
+): RetType {\n}"
+   (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
+   (should (eq (get-face-at "var2") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/variables-in-declaration-singleline-with-types ()
+  "Variables should be highlighted in singleline declarations with types."
+  (test-with-fontified-buffer
+      "function test(var1: Foo, var2: Bar,): RetType {\n}"
+   (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
+   (should (eq (get-face-at "var2") 'font-lock-variable-name-face))
+   (should (eq (get-face-at "Foo") 'font-lock-type-face))
+   (should (eq (get-face-at "Bar") 'font-lock-type-face))))
+
+(ert-deftest font-lock/variables-in-declaration-singleline-ending-comma-no-hanging-paren ()
+  "Variables should be highlighted in singleline declarations with no hanging paren and trailing comma."
+  (test-with-fontified-buffer
+   "function test(var1,var2,): RetType {\n}"
+   (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
+   (should (eq (get-face-at "var2") 'font-lock-variable-name-face))))
+
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
 `typescript--flyspell-mode-predicate'.  `SEARCH-FOR' is a string
