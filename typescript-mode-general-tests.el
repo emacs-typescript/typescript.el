@@ -506,6 +506,19 @@ function foo<Z, Y, Z & Y, Z | Y | Z, Y<X<X, Y>>>()\n"
       "type Thing = number;"
     (should (eq (get-face-at "Thing") 'font-lock-type-face))))
 
+(ert-deftest font-lock/fontify-type-guard ()
+  "The type guard syntax
+
+    var is Type
+
+should be fontified as variable, keyword and type."
+  (test-with-fontified-buffer
+      "function test(var: unknown): var is RetType {\n}"
+    (should (eq (get-face-at 30) 'font-lock-variable-name-face))
+    (should (eq (get-face-at "is") 'font-lock-keyword-face))
+    (should (eq (get-face-at "RetType") 'font-lock-type-face))))
+
+
 (ert-deftest font-lock/type-names-level4 ()
   "Typenames should be highlighted in declarations"
 

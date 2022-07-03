@@ -2013,10 +2013,13 @@ This performs fontification according to `typescript--class-styles'."
     ;; - private generic: SomeType<Foo>
     ;; - private genericArray: SomeType<Foo>[]
     ;; - function testFunc(): SomeType<> {
+    ;; - function testFunc(a): a is SomeType<> {
     ;; TODO: namespaced classes!
     ,(list
-      (concat ":\\s-\\(" typescript--type-name-re "\\)\\(<" typescript--type-name-re ">\\)?\\(\[\]\\)?\\([,;]\\)?\\s-*{?")
-      '(1 'font-lock-type-face))
+      (concat ":\\s-\\(?:\\s-*\\(" typescript--name-re "\\)\\s-*\\(is\\)\\s-*\\)?" "\\(" typescript--type-name-re "\\)\\(<" typescript--type-name-re ">\\)?\\(\[\]\\)?\\([,;]\\)?\\s-*{?")
+      '(1 'font-lock-variable-name-face nil t)
+      '(2 'font-lock-keyword-face nil t)
+      '(3 'font-lock-type-face))
 
     ;; type-casts
     ,(list
@@ -2094,7 +2097,7 @@ This performs fontification according to `typescript--class-styles'."
     ;; but need care to avoid affecting the // and */ comment markers.
     ("\\(?:^\\|[=([{,:;|&!]\\|\\_<return\\_>\\)\\(?:[ \t]\\)*\\(/\\)[^/*]"
      (1 (ignore
-	 (forward-char -1)
+     (forward-char -1)
          (when (or (not (memq (char-after (match-beginning 0)) '(?\s ?\t)))
                    ;; If the / is at the beginning of line, we have to check
                    ;; the end of the previous text.
@@ -2330,20 +2333,20 @@ the same column as the current line."
   (save-excursion
     (save-match-data
       (when (looking-at "\\s-*\\_<while\\_>")
-	(if (save-excursion
-	      (skip-chars-backward "[ \t\n]*}")
-	      (looking-at "[ \t\n]*}"))
-	    (save-excursion
-	      (backward-list) (forward-symbol -1) (looking-at "\\_<do\\_>"))
-	  (typescript--re-search-backward "\\_<do\\_>" (point-at-bol) t)
-	  (or (looking-at "\\_<do\\_>")
-	      (let ((saved-indent (current-indentation)))
-		(while (and (typescript--re-search-backward "^\\s-*\\_<" nil t)
-			    (/= (current-indentation) saved-indent)))
-		(and (looking-at "\\s-*\\_<do\\_>")
-		     (not (typescript--re-search-forward
-			   "\\_<while\\_>" (point-at-eol) t))
-		     (= (current-indentation) saved-indent)))))))))
+    (if (save-excursion
+          (skip-chars-backward "[ \t\n]*}")
+          (looking-at "[ \t\n]*}"))
+        (save-excursion
+          (backward-list) (forward-symbol -1) (looking-at "\\_<do\\_>"))
+      (typescript--re-search-backward "\\_<do\\_>" (point-at-bol) t)
+      (or (looking-at "\\_<do\\_>")
+          (let ((saved-indent (current-indentation)))
+        (while (and (typescript--re-search-backward "^\\s-*\\_<" nil t)
+                (/= (current-indentation) saved-indent)))
+        (and (looking-at "\\s-*\\_<do\\_>")
+             (not (typescript--re-search-forward
+               "\\_<while\\_>" (point-at-eol) t))
+             (= (current-indentation) saved-indent)))))))))
 
 
 (defun typescript--ctrl-statement-indentation ()
@@ -2952,9 +2955,9 @@ Key bindings:
         comment-start-skip "\\(//+\\|/\\*+\\)\\s *")
 
   (setq-local electric-indent-chars
-	      (append "{}():;," electric-indent-chars))
+          (append "{}():;," electric-indent-chars))
   (setq-local electric-layout-rules
-	      '((?\; . after) (?\{ . after) (?\} . before)))
+          '((?\; . after) (?\{ . after) (?\} . before)))
 
   (let ((c-buffer-is-cc-mode t))
     ;; FIXME: These are normally set by `c-basic-common-init'.  Should
