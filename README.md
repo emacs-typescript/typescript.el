@@ -13,6 +13,40 @@ indentation for Typescript syntax, without any external dependencies.
 Output from `tsc` and `tslint` is also handled seamlessly through
 `compilation-mode`.
 
+## A short note on development HALT
+
+As the both the JavaScript and TypeScript languages have evolved to become ever more complex, so has the
+Elisp codebase for `typescript-mode` trying to correctly handle them.
+
+We''ve been at the point for quite some time where it has become increasingly obvious that the current code-base
+simply cannot continue growing. It will be slow. It will be complex. It will be buggy. It will be head-ache inducing
+to wrap our heads around it, and ... I guess we're already there.
+
+Apart from occasional PRs getting merged, the current `typescript-mode` code isn't being developed because almost nobody
+wants to work code of this complexity.
+
+*Essentially all major development of `typescript-mode` has come to a halt.*
+
+## Seeing the forest for trees
+
+Lots of Emacs major-modes are facing the same problem. I'm sure there's similar issues for other editors too.
+
+This means lots of developers are working on solving this problem once and for all, and what they've decided on
+is relying on a standardized set of external parsers using the [tree-sitter](https://tree-sitter.github.io/tree-sitter/) library.
+
+New major modes are being developed as we speak to support TypeScript (and other languages) within Emacs based on Emacs' upcoming
+native tree-sitter support.
+
+The code will be much faster, it will be simpler to work with and everyone should be happy. Well almost. Since tree-sitter support
+relies on a new major feature being added to core Emacs, it also means that these new major modes won't be backward compatible with
+older Emacs-versions.
+
+For that reason we are not *replacing* this major mode with the new and improved one, but keeping it around to make sure older Emacs-versions
+does at least have an option for working with Typescript, even though it may not be optimal or track recent changes to the TypeScript-language.
+
+But once new Emacs ships with tree-sitter support, you are adviced to upgrade to the newer modes for better TypeScript-support, rather
+than keeping this old version around.
+
 # Installation
 
 `typescript.el` can be installed from source directly using your
