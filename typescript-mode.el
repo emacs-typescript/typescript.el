@@ -1737,6 +1737,14 @@ and searches for the next token to be highlighted."
   `(
     ,@typescript--font-lock-keywords-2
 
+    ;; Remove the fontification of keywords and built-ins when they
+    ;; are keys in an interface, object or class.
+    (,(rx "{")
+     (,(concat "\\(" typescript--keyword-re "\\):")
+      (save-excursion (ignore-errors (up-list)) (point))
+      nil
+      (1 'default t t)))
+
     (typescript--jsdoc-param-matcher (1 'typescript-jsdoc-tag t t)
                                      (2 'typescript-jsdoc-type t t)
                                      (3 'typescript-jsdoc-value t t))
