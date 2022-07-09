@@ -358,7 +358,7 @@ declare function declareFunctionDefn(x3: xty3, y3: yty3): ret3;"
       ("exportedDefaultDefn" . font-lock-function-name-face)
       ("declareFunctionDefn" . font-lock-function-name-face)
       (("x0" "x1" "x2" "x3") . font-lock-variable-name-face)
-      (("y0" "y1" "y2" "y3") . font-lock-variable-name-face)
+      (("\\by0" "\\by1" "\\by2" "\\by3") . font-lock-variable-name-face)
       (("ret0" "ret1" "ret2" "ret3") . nil))))
 
 (ert-deftest font-lock/level-four ()
@@ -380,7 +380,7 @@ snake_cased_function(1, 2, 3)"
       ("methodCall" . font-lock-function-name-face)
       ("snake_cased_function" . font-lock-function-name-face)
       (("string" "boolean" "number" "any") . typescript-primitive-face)
-      (("endpoint" "data") . nil)
+      (("endpoint" "data") . font-lock-variable-name-face)
       (("<" ">" ",") . nil))))
 
 (ert-deftest font-lock/generics ()
@@ -593,19 +593,24 @@ should be fontified as variable, keyword and type."
     (should (eq (get-face-at "Namespaced") 'font-lock-type-face))
     (should (eq (get-face-at "ClassName") 'font-lock-type-face))))
 
-(ert-deftest font-lock/variables-in-declaration-multiline-with-types ()
+(ert-deftest font-lock/funargs--function--multiline-with-types ()
   "Variables should be highlighted in multiline declarations with types."
   (test-with-fontified-buffer
       "function test(
-var1: Type1,
-var2: Type2,
+var1: Promise<U1, V1>,
+var2: (xxx: Foo) => Bar,
+var3: Type3,
 ): RetType {\n}"
     (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
     (should (eq (get-face-at "var2") 'font-lock-variable-name-face))
-    (should (eq (get-face-at "Type1") 'font-lock-type-face))
-    (should (eq (get-face-at "Type2") 'font-lock-type-face))))
+    (should (eq (get-face-at "var3") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "xxx") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "Promise") 'font-lock-type-face))
+    (should (eq (get-face-at "U1") 'font-lock-type-face))
+    (should (eq (get-face-at "Foo") 'font-lock-type-face))
+    (should (eq (get-face-at "Type3") 'font-lock-type-face))))
 
-(ert-deftest font-lock/variables-in-declaration-multiline-without-types ()
+(ert-deftest font-lock/funargs--function--multiline-without-types ()
   "Variables should be highlighted in multiline declarations without types."
   (test-with-fontified-buffer
       "function test(
@@ -615,8 +620,8 @@ var2,
     (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
     (should (eq (get-face-at "var2") 'font-lock-variable-name-face))))
 
-(ert-deftest font-lock/variables-in-declaration-multiline-no-hanging-paren ()
-  "Variables should be highlighted in multiline declarations with no hanging paren."
+(ert-deftest font-lock/funargs--function--multiline-hanging-paren ()
+  "Variables should be highlighted in multiline declarations with hanging paren."
   (test-with-fontified-buffer
    "function test(
 var1,
@@ -624,8 +629,8 @@ var2): RetType {\n}"
    (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
    (should (eq (get-face-at "var2") 'font-lock-variable-name-face))))
 
-(ert-deftest font-lock/variables-in-declaration-multiline-ending-comma-no-hanging-paren ()
-  "Variables should be highlighted in multiline declarations with no hanging paren and trailing comma."
+(ert-deftest font-lock/funargs--function--multiline-ending-comma-hanging-paren ()
+  "Variables should be highlighted in multiline declarations with hanging paren and trailing comma."
   (test-with-fontified-buffer
    "function test(
 var1,
@@ -633,15 +638,15 @@ var2,): RetType {\n}"
    (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
    (should (eq (get-face-at "var2") 'font-lock-variable-name-face))))
 
-(ert-deftest font-lock/variables-in-declaration-singleline-ending-comma-hanging-paren ()
-  "Variables should be highlighted in singleline declarations with hanging paren and trailing comma."
+(ert-deftest font-lock/funargs--function--singleline-ending-comma-no-hanging-paren ()
+  "Variables should be highlighted in singleline declarations with no hanging paren and trailing comma."
   (test-with-fontified-buffer
       "function test(var1,var2,
 ): RetType {\n}"
    (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
    (should (eq (get-face-at "var2") 'font-lock-variable-name-face))))
 
-(ert-deftest font-lock/variables-in-declaration-singleline-with-types ()
+(ert-deftest font-lock/funargs--function--singleline-with-types ()
   "Variables should be highlighted in singleline declarations with types."
   (test-with-fontified-buffer
       "function test(var1: Foo, var2: Bar,): RetType {\n}"
@@ -650,12 +655,164 @@ var2,): RetType {\n}"
    (should (eq (get-face-at "Foo") 'font-lock-type-face))
    (should (eq (get-face-at "Bar") 'font-lock-type-face))))
 
-(ert-deftest font-lock/variables-in-declaration-singleline-ending-comma-no-hanging-paren ()
-  "Variables should be highlighted in singleline declarations with no hanging paren and trailing comma."
+(ert-deftest font-lock/funargs--function--singleline-ending-comma-hanging-paren ()
+  "Variables should be highlighted in singleline declarations with hanging paren and trailing comma."
   (test-with-fontified-buffer
    "function test(var1,var2,): RetType {\n}"
    (should (eq (get-face-at "var1") 'font-lock-variable-name-face))
    (should (eq (get-face-at "var2") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--function--keywords-as-variables ()
+  "Keywords when used as variables should have variable face"
+  (test-with-fontified-buffer
+      "function test(type, unknown): void {}"
+    (should (eq (get-face-at "type") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "unknown") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--arrow--keywords-as-variables ()
+  "Keywords when used as variables should have variable face"
+  (test-with-fontified-buffer
+      "const test = (type, unknown): void => {}"
+    (should (eq (get-face-at "type") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "unknown") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--arrow--single-line--no-type ()
+  (test-with-fontified-buffer
+      "const test = (aaa, bbb, ccc): void => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ccc") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--arrow--single-line--no-type--no-return-type ()
+  (test-with-fontified-buffer
+      "const test = (aaa, bbb, ccc) => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ccc") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--arrow--single-line--no-type--trailing-comma ()
+  (test-with-fontified-buffer
+      "const test = (aaa, bbb, ccc,): void => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ccc") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--arrow--single-line--no-type--optional ()
+  (test-with-fontified-buffer
+      "const test = (aaa, bbb?): void => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb?") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--arrow--multiline--no-type ()
+  (test-with-fontified-buffer
+      "const test = (aaa, bbb,
+ccc, ddd): void => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ccc") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ddd") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--arrow--multiline--no-type--newline-after-last ()
+  (test-with-fontified-buffer
+      "const test = (aaa, bbb,
+ccc, ddd
+): void => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ccc") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ddd") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--arrow--multiline--no-type--newline-before-first ()
+  (test-with-fontified-buffer
+      "const test = (
+aaa, bbb,
+ccc, ddd
+): void => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ccc") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ddd") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--arrow--multiline--no-type--with-comment ()
+  (test-with-fontified-buffer
+      "const test = (
+aaa, bbb, // comment
+ccc, ddd  // comment
+): void => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ccc") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ddd") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--arrow--single--mixed-type--newline-before-first ()
+  (test-with-fontified-buffer
+      "const test = (aaa, bbb: Promise, ccc: number, ddd): void => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ccc") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "ddd") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "Promise") 'font-lock-type-face))
+    (should (eq (get-face-at "number") 'typescript-primitive-face))))
+
+(ert-deftest font-lock/funargs--arrow--single--with-type--complex-type ()
+  (test-with-fontified-buffer
+      "const test = (aaa: Promise<U, V, (xxx: A) => Foo>, bbb): void => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "xxx") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--arrow--multiline--with-type--newline-before-first-after-last ()
+  (test-with-fontified-buffer
+      "const test = (
+aaa: Foo,
+bbb: Bar
+): void => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "Foo") 'font-lock-type-face))
+    (should (eq (get-face-at "Bar") 'font-lock-type-face))))
+
+(ert-deftest font-lock/funargs--arrow--multiline--with-type--newline-before-first-after-last--hanging-comma ()
+  (test-with-fontified-buffer
+      "const test = (
+aaa: Foo,
+bbb: Bar,
+): void => {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "Foo") 'font-lock-type-face))
+    (should (eq (get-face-at "Bar") 'font-lock-type-face))))
+
+(ert-deftest font-lock/funargs--method--multiline--with-type ()
+  (test-with-fontified-buffer
+      "class Foo { foo(
+aaa: Foo,
+bbb: Bar,
+): void {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "Foo") 'font-lock-type-face))
+    (should (eq (get-face-at "Bar") 'font-lock-type-face))))
+
+(ert-deftest font-lock/funargs--method--single-line--with-type ()
+  (test-with-fontified-buffer
+      "class Foo { foo(aaa: Foo,bbb: Bar,): void {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "Foo") 'font-lock-type-face))
+    (should (eq (get-face-at "Bar") 'font-lock-type-face))))
+
+(ert-deftest font-lock/funargs--method--single-line--no-type ()
+  (test-with-fontified-buffer
+      "class Foo { foo(aaa, bbb): void {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))))
+
+(ert-deftest font-lock/funargs--method--single-line--no-return-type ()
+  (test-with-fontified-buffer
+      "class Foo { foo(aaa, bbb) {}"
+    (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
+    (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))))
 
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
