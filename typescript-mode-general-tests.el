@@ -287,6 +287,19 @@ a severity set to WARNING, no rule name."
  " * @param {Something} bar A parameter. References [[moo]] and [[foo]].
  * @param second May hold ``x`` or ``y``.")
 
+(ert-deftest font-lock/interface-builtin-key-context-unfontify ()
+  "Builtins should not be fontified when they are in object or
+interface key context."
+  (test-with-fontified-buffer
+      "interface Foo { type: number; unknown: string; foo: boolean }"
+    (should (eq (get-face-at "type") 'default))
+    (should (eq (get-face-at "unknown") 'default)))
+
+  (test-with-fontified-buffer
+      "const x = { type: 4; unknown: 'bar'; foo: true }"
+    (should (eq (get-face-at "type") 'default))
+    (should (eq (get-face-at "unknown") 'default))))
+
 (ert-deftest font-lock/documentation-in-documentation-comments ()
   "Documentation in documentation comments should be fontified as
 documentation."
