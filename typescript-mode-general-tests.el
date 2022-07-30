@@ -396,6 +396,17 @@ snake_cased_function(1, 2, 3)"
       (("endpoint" "data") . nil)
       (("<" ">" ",") . nil))))
 
+(ert-deftest font-lock/method-call-with-keyword-name ()
+  "If the name of the function/method is a keyword, it should still be highlighted as function."
+  (test-with-fontified-buffer
+      "const app = express();
+app.get()
+app.post()
+app.delete()"
+    (should (eq (get-face-at "get") 'font-lock-function-name-face))
+    (should (eq (get-face-at "post") 'font-lock-function-name-face))
+    (should (eq (get-face-at "delete") 'font-lock-function-name-face))))
+
 (ert-deftest font-lock/generics ()
   "Tests that type hints within generics are highlighted properly."
   (font-lock-test
