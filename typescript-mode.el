@@ -1015,7 +1015,7 @@ lines."
                         (progn
                           (forward-comment most-positive-fixnum)
                           (memq (char-after) '(?\, ?\; ?\] ?\) ?\}))))
-              do (forward-sexp)))
+                 do (forward-sexp)))
    while (and (eq (char-after) ?\n)
               (save-excursion
                 (forward-char)
@@ -1686,6 +1686,82 @@ point of view of font-lock.  It applies highlighting directly with
   ;; Matcher always "fails"
   nil)
 
+(defun typescript--function-argument-matcher (limit)
+  "Font-lock matcher for variables in argument lists.
+
+Because the syntax of the argument list is shared between
+functions, arrow functions and methods, this same matcher is used
+for all of them.  The context for the search is set up as
+anchored matcher.
+
+This is a cc-mode-style matcher that *always* fails, from the
+point of view of font-lock.  It applies highlighting directly
+with `font-lock-apply-highlight'."
+  (condition-case nil
+      (save-restriction
+        (widen)
+        (narrow-to-region (point-min) limit)
+        (while (re-search-forward
+                (rx (group
+                     (regexp "[a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*")
+                     ;; name can be optionally followed by ? to mark
+                     ;; the argument optional
+                     (? "?"))
+                    (* whitespace)
+                    (group (or "," ":" ")"
+                               ;; last variable in the list with a
+                               ;; paren on next line and no hanging
+                               ;; comma.  extra logic is added to deal
+                               ;; with possible comments after the
+                               ;; variable.
+                               eol
+                               (and (* whitespace) (or "//" "/*") (* any) eol))))
+                nil t)
+          (font-lock-apply-highlight '(1 font-lock-variable-name-face t))
+
+          ;; If ender is a ":" it means that the currently matched
+          ;; variable also has a type signature.
+          (let ((ender (match-string 2)))
+            ;; We need to skip the type specification.  The regexp
+            ;; basically either searches for the next thing which we
+            ;; believe is a parameter or the end of the argument list.
+            (when (equal ender ":")
+              (let ((perform-match t))
+                (while (and perform-match
+                            (re-search-forward
+                             (rx (or
+                                  ;; variable without type at the end
+                                  ;; of line
+                                  (and "," eol)
+                                  ;; next thing is a functional
+                                  ;; argument, such as f:(x) => void
+                                  (and "(")
+                                  ;; closing of a function type argument.
+                                  ;; here, the type of `f'.
+                                  ;; (f: (x: number) => foo): void => { }
+                                  (and ")" (? (* whitespace) "=>" (* whitespace)))
+                                  (and ","
+                                       (* whitespace)
+                                       (regexp "[a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*")
+                                       ;; optional ? to mark the
+                                       ;; argument optional
+                                       (? "?")
+                                       (group (or ":" ")")))))
+                             nil t))
+                  ;; In case the skipped type was the end of a
+                  ;; function type argument, the next token is the
+                  ;; return type of the inner function, so we need to
+                  ;; match but not fontify the next "name" (which
+                  ;; really is the type).
+                  (if (string-match-p "=>" (match-string 0))
+                      (setq perform-match t)
+                    (goto-char (match-beginning 0))
+                    (setq perform-match nil))))))))
+    ;; conditions to handle
+    (scan-error nil)
+    (end-of-buffer nil))
+  nil)
+
 (defun typescript--in-documentation-comment-p ()
   "Reports whether point is inside a documentation comment."
   (let ((parse (syntax-ppss)))
@@ -1863,16 +1939,48 @@ and searches for the next token to be highlighted."
       (concat "\\_<instanceof\\_>\\s-+\\(" typescript--dotted-name-re "\\)")
       (list 1 'font-lock-type-face))
 
-    ;; formal parameters
+    ;; formal parameters in "function" function call
+    ;; function helloWorld(a: number, b: Promise<number>): void { }
     ,(list
       (concat
        "\\_<function\\_>\\(\\s-+" typescript--name-re "\\)?\\s-*\\(<.*>\\)?\\s-*(\\s-*"
        "\\(?:$\\|" typescript--name-start-re "\\)")
-      `(,(concat "\\(" typescript--name-re "\\)\\(?:\\s-*?\\([,:)]\\|$\\)\\)")
-        (prog1 (save-excursion (re-search-forward ")" nil t))
+      `(typescript--function-argument-matcher
+        (prog1 (save-excursion (ignore-errors (up-list)) (point))
           (backward-char))
         nil
-        (1 font-lock-variable-name-face))))
+        nil))
+
+    ;; formal parameters in arrow function
+    ;; const helloWorld = (a: number, b: Promise<number>): void => { }
+    ,(list
+      (rx (group "=>") (* whitespace) (? eol) (* whitespace) "{")
+      '(1 font-lock-keyword-face)
+      `(typescript--function-argument-matcher
+        (prog1 (progn
+                 (backward-char)
+                 (typescript--backward-to-parameter-list)
+                 (point))
+          (backward-sexp))
+        (re-search-forward "{" nil t)
+        nil))
+
+    ;; formal parameters in method definitions
+    ;; class Foo { helloWorld(a: number, b: Promise<number>): void { } }
+    ,(list
+      typescript--function-call-re
+      `(typescript--function-argument-matcher
+        (let ((point-orig (point))
+              (is-method-def
+               (ignore-errors
+                 (up-list)
+                 (looking-at-p
+                  (rx (* (or whitespace ?\n)) (or ":" "{"))))))
+          (if is-method-def
+              (prog1 (point) (goto-char point-orig))
+            (point)))
+        nil
+        nil)))
   "Level three font lock for `typescript-mode'.")
 
 (defun typescript--flyspell-mode-predicate ()

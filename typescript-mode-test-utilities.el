@@ -26,8 +26,8 @@
   (declare (debug t)
            (indent 1))
   `(test-with-temp-buffer
-    ,content
-     (font-lock-fontify-buffer)
+       ,content
+     (font-lock-ensure (point-min) (point-max))
      ,@body))
 
 (defun get-face-at (loc)
@@ -48,15 +48,15 @@ It should be a list of (LOCATION . FACE) pairs, where
 LOCATION can be either a single location, or list of locations,
 that are all expected to have the same face."
   (test-with-fontified-buffer
-   contents
-   ;; Make sure our propertize function has been applied to the whole
-   ;; buffer.
-   (syntax-propertize (point-max))
-   (dolist (spec expected)
-     (if (listp (car spec))
-         (dolist (source (car spec))
-           (should (eq (get-face-at source) (cdr spec))))
-       (should (eq (get-face-at (car spec)) (cdr spec)))))))
+      contents
+    ;; Make sure our propertize function has been applied to the whole
+    ;; buffer.
+    (syntax-propertize (point-max))
+    (dolist (spec expected)
+      (if (listp (car spec))
+          (dolist (source (car spec))
+            (should (eq (get-face-at source) (cdr spec))))
+        (should (eq (get-face-at (car spec)) (cdr spec)))))))
 
 (provide 'typescript-mode-test-utilities)
 
