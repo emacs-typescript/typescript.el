@@ -589,7 +589,11 @@ should be fontified as variable, keyword and type."
   (test-with-fontified-buffer
       "private genericArray3: SomeType<Foo[]>[];"
     (should (eq (get-face-at "SomeType") 'font-lock-type-face))
-    (should (eq (get-face-at "Foo") 'font-lock-type-face))))
+    (should (eq (get-face-at "Foo") 'font-lock-type-face)))
+
+  (test-with-fontified-buffer
+      "const f: () => SomeType = () => {}"
+    (should (eq (get-face-at "SomeType") 'font-lock-type-face))))
 
 (ert-deftest font-lock/type-names-level4-namespaces ()
   "Namespaced Typenames should be highlighted in declarations"

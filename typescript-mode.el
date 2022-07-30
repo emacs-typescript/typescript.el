@@ -2011,9 +2011,10 @@ This performs fontification according to `typescript--class-styles'."
     ;; - private genericArray: SomeType<Foo>[]
     ;; - function testFunc(): SomeType<> {
     ;; - function testFunc(a): a is SomeType<> {
+    ;; - () => SomeType
     ;; TODO: namespaced classes!
     ,(list
-      (concat ":\\s-\\(?:\\s-*\\(" typescript--name-re "\\)\\s-*\\(is\\)\\s-*\\)?" "\\(" typescript--type-name-re "\\)\\(<" typescript--type-name-re ">\\)?\\(\[\]\\)?\\([,;]\\)?\\s-*{?")
+      (concat "\\(?::\\|=>\\)\\s-\\(?:\\s-*\\(" typescript--name-re "\\)\\s-*\\(is\\)\\s-*\\)?" "\\(" typescript--type-name-re "\\)\\(<" typescript--type-name-re ">\\)?\\(\[\]\\)?\\([,;]\\)?\\s-*{?")
       '(1 'font-lock-variable-name-face nil t)
       '(2 'font-lock-keyword-face nil t)
       '(3 'font-lock-type-face))
