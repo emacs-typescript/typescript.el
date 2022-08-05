@@ -397,15 +397,19 @@ snake_cased_function(1, 2, 3)"
       (("<" ">" ",") . nil))))
 
 (ert-deftest font-lock/method-call-with-keyword-name ()
-  "If the name of the function/method is a keyword, it should still be highlighted as function."
+  "If the name of the method is a keyword, it should still be highlighted as function."
   (test-with-fontified-buffer
       "const app = express();
 app.get()
 app.post()
-app.delete()"
+app.delete()
+if (true) {}
+// for (abc) {}"
     (should (eq (get-face-at "get") 'font-lock-function-name-face))
     (should (eq (get-face-at "post") 'font-lock-function-name-face))
-    (should (eq (get-face-at "delete") 'font-lock-function-name-face))))
+    (should (eq (get-face-at "delete") 'font-lock-function-name-face))
+    (should (eq (get-face-at "if") 'font-lock-keyword-face))
+    (should (eq (get-face-at "for") 'font-lock-comment-face))))
 
 (ert-deftest font-lock/generics ()
   "Tests that type hints within generics are highlighted properly."
