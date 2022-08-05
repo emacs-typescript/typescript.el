@@ -2137,7 +2137,9 @@ This performs fontification according to `typescript--class-styles'."
     ,@typescript--font-lock-keywords-3
 
     (,typescript--decorator-re (1 font-lock-function-name-face))
-    (,typescript--function-call-re (1 font-lock-function-name-face t))
+    (,typescript--function-call-re (1 font-lock-function-name-face))
+    (,(concat "\\(?:\\.\\s-*\\)" typescript--function-call-re)
+     (1 font-lock-function-name-face t))
     (,typescript--builtin-re (1 font-lock-type-face))
 
     ;; arrow function
