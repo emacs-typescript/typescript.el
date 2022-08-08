@@ -846,6 +846,31 @@ bbb: Bar,
     (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
     (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))))
 
+(ert-deftest font-lock/backticks--expr-fontification--with-variable ()
+  (test-with-fontified-buffer
+      "const x = `hello ${world}`"
+    (should (eq (get-face-at "${") 'font-lock-keyword-face))
+    (should (eq (get-face-at "world") 'default))
+    (should (eq (get-face-at "}") 'font-lock-keyword-face))))
+
+(ert-deftest font-lock/backticks--expr-fontification--not-in-regular-string ()
+  (test-with-fontified-buffer
+      "const x = 'hello ${world}'"
+    (should (eq (get-face-at "${") 'font-lock-string-face))
+    (should (eq (get-face-at "world") 'font-lock-string-face))
+    (should (eq (get-face-at "}") 'font-lock-string-face))))
+
+(ert-deftest font-lock/backticks--expr-fontification--with-funcall ()
+  "For now function calls or any other expressions are fontified as
+if a simple variable token in its entirety.  When/if this is
+implemented better, this test should be adjusted to capture the
+new functionality."
+  (test-with-fontified-buffer
+      "const x = `hello ${parseInt(foobar)}`"
+    (should (eq (get-face-at "${") 'font-lock-keyword-face))
+    (should (eq (get-face-at "parseInt(foobar)") 'default))
+    (should (eq (get-face-at "}") 'font-lock-keyword-face))))
+
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
 `typescript--flyspell-mode-predicate'.  `SEARCH-FOR' is a string
