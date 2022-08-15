@@ -1974,8 +1974,34 @@ and searches for the next token to be highlighted."
               (is-method-def
                (ignore-errors
                  (up-list)
-                 (looking-at-p
-                  (rx (* (or whitespace ?\n)) (or ":" "{"))))))
+                 (and
+                  (or
+                   ;; After the "argument list" is a bracket, this is
+                   ;; either a special form (if, while...) or a method
+                   ;; declaration.
+                   (looking-at-p (rx (* (or whitespace ?\n)) "{"))
+                   ;; After the "argument list" is a colon, this is
+                   ;; either a method declaration with a return type
+                   ;; annotation or ternary form.  We need to discard
+                   ;; the ternary form case.
+                   (and
+                    (looking-at-p (rx (* (or whitespace ?\n)) ":"))
+                    (save-excursion
+                      (backward-sexp 2)
+                      (skip-syntax-backward " >")
+                      (not (eq (char-before) ??)))))
+                  ;; HACK: here we check the fontification of
+                  ;; the "function name".  Because the keywords
+                  ;; are fontified before this check runs, a
+                  ;; keyword would already have been fontified
+                  ;; and therefore we can conclude it is not a
+                  ;; function/method definition.
+                  (save-excursion
+                    (backward-sexp)
+                    (backward-word)
+                    (not (memq
+                          'font-lock-keyword-face
+                          (face-at-point nil t))))))))
           (if is-method-def
               (prog1 (point) (goto-char point-orig))
             (point)))

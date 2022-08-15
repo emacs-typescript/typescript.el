@@ -846,6 +846,22 @@ bbb: Bar,
     (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
     (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))))
 
+(ert-deftest font-lock/funargs--method--no-fontification-in-ternary ()
+  "Do not apply fontification on a function call inside a ternary
+operator, which might look like method with return type
+declaration."
+  (test-with-fontified-buffer
+      "true ? funcall(helloWorld) : false"
+    (should (eq (get-face-at "helloWorld") nil))))
+
+(ert-deftest font-lock/funargs--method--no-fontification-in-special-form ()
+  "Do not apply fontification inside a special form paren-form,
+such as inside of if/while/switch etc.  These look like method
+declarations without a return type annotation but are not."
+  (test-with-fontified-buffer
+      "if (hello && world) { }"
+    (should (eq (get-face-at "world") nil))))
+
 (defun flyspell-predicate-test (search-for)
   "This function runs a test on
 `typescript--flyspell-mode-predicate'.  `SEARCH-FOR' is a string
