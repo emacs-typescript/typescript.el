@@ -49,7 +49,7 @@ than keeping this old version around.
 
 ## Good news!
 Emacs 29 will ship with tree-sitter support, and it will actually have in-tree
-support for TypeScript!  So now you can just use the provided `ts-mode` and get
+support for TypeScript!  So now you can just use the provided `typescript-ts-mode` and get
 the fresh tree-sitter powered functionalities for free.  Yes, that means both
 tsx and regular types will actually work.  Development will continue in emacs
 core, rather than this repo.  We hope you'll like the new experience.
