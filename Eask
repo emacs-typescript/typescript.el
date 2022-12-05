@@ -2,6 +2,9 @@
          "0.4"
          "Major mode for editing typescript")
 
+(website-url "http://github.com/ananthakumaran/typescript.el")
+(keywords "typescript" "languages")
+
 (package-file "typescript-mode.el")
 
 (files "*.el")
