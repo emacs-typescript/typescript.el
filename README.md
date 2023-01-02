@@ -27,32 +27,14 @@ wants to work code of this complexity.
 
 *Essentially all major development of `typescript-mode` has come to a halt.*
 
-## Seeing the forest for trees
+## Good news though!
 
-Lots of Emacs major-modes are facing the same problem. I'm sure there's similar issues for other editors too.
-
-This means lots of developers are working on solving this problem once and for all, and what they've decided on
-is relying on a standardized set of external parsers using the [tree-sitter](https://tree-sitter.github.io/tree-sitter/) library.
-
-New major modes are being developed as we speak to support TypeScript (and other languages) within Emacs based on Emacs' upcoming
-native tree-sitter support.
-
-The code will be much faster, it will be simpler to work with and everyone should be happy. Well almost. Since tree-sitter support
-relies on a new major feature being added to core Emacs, it also means that these new major modes won't be backward compatible with
-older Emacs-versions.
-
-For that reason we are not *replacing* this major mode with the new and improved one, but keeping it around to make sure older Emacs-versions
-does at least have an option for working with Typescript, even though it may not be optimal or track recent changes to the TypeScript-language.
-
-But once new Emacs ships with tree-sitter support, you are adviced to upgrade to the newer modes for better TypeScript-support, rather
-than keeping this old version around.
-
-## Good news!
-Emacs 29 will ship with tree-sitter support, and it will actually have in-tree
+Emacs 29 will ship with support for a parser-library called tree-sitter, and will actually have in-tree
 support for TypeScript!  So now you can just use the provided `typescript-ts-mode` and get
-the fresh tree-sitter powered functionalities for free.  Yes, that means both
-tsx and regular types will actually work.  Development will continue in emacs
-core, rather than this repo.  We hope you'll like the new experience.
+better support for TypeScript than `typescript.el` ever provided. This new mode also supports TSX.
+
+Development of TypeScript-support will from now on continue in Emacs core, rather than this repo.
+We hope you'll like the new experience.
 
 # Installation
 
