@@ -18,7 +18,7 @@ Output from `tsc` and `tslint` is also handled seamlessly through
 As the both the JavaScript and TypeScript languages have evolved to become ever more complex, so has the
 Elisp codebase for `typescript-mode` trying to correctly handle them.
 
-We''ve been at the point for quite some time where it has become increasingly obvious that the current code-base
+We've been at the point for quite some time where it has become increasingly obvious that the current code-base
 simply cannot continue growing. It will be slow. It will be complex. It will be buggy. It will be head-ache inducing
 to wrap our heads around it, and ... I guess we're already there.
 
