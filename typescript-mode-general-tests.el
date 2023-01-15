@@ -428,7 +428,7 @@ function foo<Z, Y, Z & Y, Z | Y | Z, Y<X<X, Y>>>()\n"
    '((("div" . nil)))))
 
 (ert-deftest font-lock/regexp ()
-  "Regular expresssions should be fontified as string constant."
+  "Regular expressions should be fontified as string constant."
   (let ((content "=/foo/ (/bar/ ,/baz/ :/buzz/"))
     (font-lock-test content
                     '(("=" . nil) ("/foo/" . font-lock-string-face)
