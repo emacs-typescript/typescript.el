@@ -711,7 +711,7 @@ is called whenever a plain string delimiter is typed in the buffer."
              (string-start (or (and str-terminator (nth 8 syntax))
                                ;; We have to consider the case that we're on the start delimiter of a string.
                                ;; We tentatively take (point) as string-start. If it turns out we're
-                               ;; wrong, then typescript--move-to-end-of-plain-string will fail anway,
+                               ;; wrong, then typescript--move-to-end-of-plain-string will fail anyway,
                                ;; and we won't use the bogus value.
                                (progn
                                  (forward-char)
@@ -1500,7 +1500,7 @@ LIMIT defaults to point."
 ;; Like (up-list -1), but only considers lists that end nearby"
 (defun typescript--up-nearby-list ()
   (save-restriction
-    ;; Look at a very small region so our compuation time doesn't
+    ;; Look at a very small region so our computation time doesn't
     ;; explode in pathological cases.
     (narrow-to-region (max (point-min) (- (point) 500)) (point))
     (up-list -1)))
@@ -2084,7 +2084,7 @@ will be returned."
 
 (defun typescript-syntactic-context ()
   "Return the typescript syntactic context at point.
-When called interatively, also display a message with that
+When called interactively, also display a message with that
 context."
   (interactive)
   (let* ((syntactic-context (typescript--syntactic-context-from-pstate
