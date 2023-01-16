@@ -18,6 +18,14 @@
   (indent-region (point-min) (point-max) nil)
   (untabify (point-min) (point-max)))
 
+(ert-deftest auto-mode-alist-ts ()
+  (find-file (make-temp-file load-file-name nil ".ts"))
+  (should (string-equal "typescript-mode" major-mode)))
+
+(ert-deftest auto-mode-alist-tsx ()
+  (find-file (make-temp-file load-file-name nil ".tsx"))
+  (should (string-equal "typescript-mode" major-mode)))
+
 (ert-deftest indentation-reference-document-is-reflowed-correctly ()
   (with-temp-buffer
     (insert-file-contents "test-files/indentation-reference-document.ts")
