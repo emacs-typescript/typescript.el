@@ -270,8 +270,8 @@ Match group 1 is MUMBLE.")
      "enum" "export" "extends" "extern" "false" "finally" "for"
      "function" "from" "get" "goto" "if" "implements" "import" "in" "infer" "instanceof"
      "interface" "keyof" "let" "module" "namespace" "never" "new" "null" "number" "object" "of"
-     "override" "private" "protected" "public" "readonly" "return" "set" "static" "string"
-     "super" "switch"  "this" "throw" "true"
+     "override" "private" "protected" "public" "readonly" "return" "satisfies" "set" "static"
+     "string" "super" "switch" "this" "throw" "true"
      "try" "type" "typeof" "unknown" "var" "void"
      "while")) ; yield is handled separately
   "Regexp matching any typescript keyword.")
