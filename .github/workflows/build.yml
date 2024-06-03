@@ -24,6 +24,7 @@ jobs:
         - emacs-version: snapshot
           experimental: true
           os: macos-latest
+          system: x86_64-darwin
         - emacs-version: snapshot
           experimental: true
           os: windows-latest
