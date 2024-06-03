@@ -2115,6 +2115,20 @@ This performs fontification according to `typescript--class-styles'."
         return t
         else do (goto-char orig-end)))
 
+(defun typescript--match-subst-in-quotes (limit)
+  "Match dollar substitutions inside backticks."
+  (catch 'done
+    (while (re-search-forward
+            ;; `rx' is cool, mkay.
+            (rx (or line-start (not (any "\\")))
+                (group "${")
+                (group (+? nonl))
+                (group "}"))
+            limit t)
+      (let ((string-delim (nth 3 (syntax-ppss))))
+        (when (and string-delim (= string-delim 96))
+          (throw 'done (point)))))))
+
 (defconst typescript--font-lock-keywords-4
   `(
     ;; highlights that override previous levels
@@ -2170,7 +2184,12 @@ This performs fontification according to `typescript--class-styles'."
 
     ;; arrow function
     ("\\(=>\\)"
-     (1 font-lock-keyword-face)))
+     (1 font-lock-keyword-face))
+
+    (typescript--match-subst-in-quotes
+     (1 'font-lock-keyword-face t)
+     (2 'default t)
+     (3 'font-lock-keyword-face t)))
   "Level four font lock for `typescript-mode'.")
 
 (defconst typescript--font-lock-keywords
