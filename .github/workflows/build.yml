@@ -2,7 +2,7 @@ name: Build & Test
 
 on:
   push:
-    branches: [ master ]o
+    branches: [ master ]
   pull_request:
     branches: [ master ]
   # Allows you to run this workflow manually from the Actions tab
