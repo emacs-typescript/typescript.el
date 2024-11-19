@@ -12,7 +12,7 @@ clean:
 	rm -f $(ELCS)
 
 eask: clean
-	$(EASK) build
+	$(EASK) compile
 
 test: eask
 	+ $(EMACS) -Q -batch -L . -l typescript-mode-tests.el -f ert-run-tests-batch-and-exit
