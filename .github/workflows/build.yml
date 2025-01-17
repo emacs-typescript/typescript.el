@@ -41,4 +41,5 @@ jobs:
       - name: Run a multi-line script
         run: |
           emacs --version
+          make build
           make test
