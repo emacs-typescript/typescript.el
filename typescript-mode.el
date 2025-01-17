@@ -1,9 +1,9 @@
-;;; typescript-mode.el --- Major mode for editing typescript
+;;; typescript-mode.el --- Major mode for editing typescript  -*- lexical-binding: t -*-
 
 ;; -----------------------------------------------------------------------------------
 ;;     TypeScript support for Emacs
 ;;     Unmodified original sourve available at http://www.karllandstrom.se/downloads/emacs/javascript.el
-;;     Copyright (c) 2008 Free Software Foundation
+;;     Copyright (c) 2008-2025 Free Software Foundation
 ;;     Portions Copyright (C) Microsoft Open Technologies, Inc. All rights reserved.
 ;;
 ;;     This program is free software: you can redistribute it and/or modify
@@ -312,13 +312,13 @@ Match group 1 is MUMBLE.")
 
 (defconst typescript--font-lock-keywords-2
   (append typescript--font-lock-keywords-1
-          (list (cons typescript--constant-re font-lock-constant-face)
-                (cons typescript--basic-type-re font-lock-type-face)
-                (list typescript--keyword-re 1 font-lock-keyword-face)
-                (list "\\_<for\\_>"
-                      "\\s-+\\(each\\)\\_>" nil nil
-                      (list 1 'font-lock-keyword-face))
-                (cons "\\_<yield\\(\\*\\|\\_>\\)" 'font-lock-keyword-face)))
+          `((,typescript--constant-re (0 'font-lock-constant-face))
+            (,typescript--basic-type-re (0 'font-lock-type-face))
+            (,typescript--keyword-re (1 'font-lock-keyword-face))
+            ("\\_<for\\_>"
+             ("\\s-+\\(each\\)\\_>" nil nil
+              (1 'font-lock-keyword-face)))
+            ("\\_<yield\\(\\*\\|\\_>\\)" (0 'font-lock-keyword-face))))
   "Level two font lock keywords for `typescript-mode'.")
 
 ;; typescript--pitem is the basic building block of the lexical
@@ -935,15 +935,16 @@ point at BOB."
 This function invokes `re-search-forward', but treats the buffer
 as if strings and comments have been removed."
   (let ((saved-point (point))
-        (search-expr
+        (search-fun
          (cond ((null count)
-                '(typescript--re-search-forward-inner regexp bound 1))
+                (lambda () (typescript--re-search-forward-inner regexp bound 1)))
                ((< count 0)
-                '(typescript--re-search-backward-inner regexp bound (- count)))
+                (lambda () (typescript--re-search-backward-inner regexp bound (- count))))
                ((> count 0)
-                '(typescript--re-search-forward-inner regexp bound count)))))
+                (lambda () (typescript--re-search-forward-inner regexp bound count)))
+               (t #'ignore))))
     (condition-case err
-        (eval search-expr)
+        (funcall search-fun)
       (search-failed
        (goto-char saved-point)
        (unless noerror
@@ -990,15 +991,16 @@ If the point is in the last line, searching back for \"\\n\" will
 skip over the line with \"let b\". The newline found will be the
 one at the end of the line with \"let a\"."
   (let ((saved-point (point))
-        (search-expr
+        (search-fun
          (cond ((null count)
-                `(typescript--re-search-backward-inner ,regexp ,bound 1))
+                (lambda () (typescript--re-search-backward-inner regexp bound 1)))
                ((< count 0)
-                `(typescript--re-search-forward-inner ,regexp ,bound (- ,count)))
+                (lambda () (typescript--re-search-forward-inner regexp bound (- count))))
                ((> count 0)
-                `(typescript--re-search-backward-inner ,regexp ,bound ,count)))))
+                (lambda () (typescript--re-search-backward-inner regexp bound count)))
+               (t #'ignore))))
     (condition-case err
-        (eval search-expr)
+        (funcall search-fun)
       (search-failed
        (goto-char saved-point)
        (unless noerror
@@ -1839,35 +1841,35 @@ and searches for the next token to be highlighted."
      (0 'typescript-jsdoc-value t))
 
     (typescript--tslint-flag-matcher
-     (1 font-lock-preprocessor-face t))
+     (1 'font-lock-preprocessor-face t))
 
     ("\\.\\(prototype\\)\\_>"
-     (1 font-lock-constant-face))
+     (1 'font-lock-constant-face))
 
     (,(rx symbol-start "class" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
-     (1 font-lock-type-face))
+     (1 'font-lock-type-face))
 
     (,(rx symbol-start "extends" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
-     (1 font-lock-type-face))
+     (1 'font-lock-type-face))
 
     (,(rx symbol-start "implements" (+ space))
-     (,(rx symbol-start (+ (syntax word))) nil nil (0 font-lock-type-face)))
+     (,(rx symbol-start (+ (syntax word))) nil nil (0 'font-lock-type-face)))
 
     (,(rx symbol-start "interface" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
-     (1 font-lock-type-face))
+     (1 'font-lock-type-face))
 
     (,(rx symbol-start "type" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
-     (1 font-lock-type-face))
+     (1 'font-lock-type-face))
 
     (,(rx symbol-start "enum" (+ space) (group (+ (or (syntax word) (syntax symbol)))))
-     (1 font-lock-type-face))
+     (1 'font-lock-type-face))
 
     ;; Highlights class being declared, in parts
     (typescript--class-decl-matcher
      ,(concat "\\(" typescript--name-re "\\)\\(?:\\.\\|.*$\\)")
      (goto-char (match-beginning 1))
      nil
-     (1 font-lock-type-face))
+     (1 'font-lock-type-face))
 
     ;; Highlights parent class, in parts, if available
     (typescript--class-decl-matcher
@@ -1884,11 +1886,11 @@ and searches for the next token to be highlighted."
        (save-excursion
          (goto-char typescript--tmp-location)
          (delete-char 1)))
-     (1 font-lock-type-face))
+     (1 'font-lock-type-face))
 
     ;; Highlights parent class
     (typescript--class-decl-matcher
-     (2 font-lock-type-face nil t))
+     (2 'font-lock-type-face nil t))
 
     ;; Dojo needs its own matcher to override the string highlighting
     (,(typescript--make-framework-matcher
@@ -1896,8 +1898,8 @@ and searches for the next token to be highlighted."
        "^\\s-*dojo\\.declare\\s-*(\""
        "\\(" typescript--dotted-name-re "\\)"
        "\\(?:\"\\s-*,\\s-*\\(" typescript--dotted-name-re "\\)\\)?")
-     (1 font-lock-type-face t)
-     (2 font-lock-type-face nil t))
+     (1 'font-lock-type-face t)
+     (2 'font-lock-type-face nil t))
 
     ;; Match Dojo base classes. Of course Mojo has to be different
     ;; from everything else under the sun...
@@ -1909,7 +1911,7 @@ and searches for the next token to be highlighted."
               "\\(?:\\].*$\\)?")
      (backward-char)
      (end-of-line)
-     (1 font-lock-type-face))
+     (1 'font-lock-type-face))
 
     ;; continued Dojo base-class list
     (,(typescript--make-framework-matcher
@@ -1922,7 +1924,7 @@ and searches for the next token to be highlighted."
          (forward-symbol -1)
        (end-of-line))
      (end-of-line)
-     (1 font-lock-type-face))
+     (1 'font-lock-type-face))
 
     ;; variable declarations
     ,(list
@@ -1930,14 +1932,12 @@ and searches for the next token to be highlighted."
       (list #'typescript--variable-decl-matcher nil nil nil))
 
     ;; class instantiation
-    ,(list
-      (concat "\\_<new\\_>\\s-+\\(" typescript--dotted-name-re "\\)")
-      (list 1 'font-lock-type-face))
+    (,(concat "\\_<new\\_>\\s-+\\(" typescript--dotted-name-re "\\)")
+     (1 'font-lock-type-face))
 
     ;; instanceof
-    ,(list
-      (concat "\\_<instanceof\\_>\\s-+\\(" typescript--dotted-name-re "\\)")
-      (list 1 'font-lock-type-face))
+    (,(concat "\\_<instanceof\\_>\\s-+\\(" typescript--dotted-name-re "\\)")
+     (1 'font-lock-type-face))
 
     ;; formal parameters in "function" function call
     ;; function helloWorld(a: number, b: Promise<number>): void { }
@@ -2162,7 +2162,7 @@ This performs fontification according to `typescript--class-styles'."
     ;; - () => SomeType
     ;; TODO: namespaced classes!
     ,(list
-      (concat "\\(?::\\|=>\\)\\s-\\(?:\\s-*\\(" typescript--name-re "\\)\\s-*\\(is\\)\\s-*\\)?" "\\(" typescript--type-name-re "\\)\\(<" typescript--type-name-re ">\\)?\\(\[\]\\)?\\([,;]\\)?\\s-*{?")
+      (concat "\\(?::\\|=>\\)\\s-\\(?:\\s-*\\(" typescript--name-re "\\)\\s-*\\(is\\)\\s-*\\)?" "\\(" typescript--type-name-re "\\)\\(<" typescript--type-name-re ">\\)?\\(\\[\\]\\)?\\([,;]\\)?\\s-*{?")
       '(1 'font-lock-variable-name-face nil t)
       '(2 'font-lock-keyword-face nil t)
       '(3 'font-lock-type-face))
@@ -2179,12 +2179,12 @@ This performs fontification according to `typescript--class-styles'."
     (,typescript--decorator-re (1 'font-lock-function-call-face))
     (,typescript--function-call-re (1 (typescript--function-face)))
     (,(concat "\\(?:\\.\\s-*\\)" typescript--function-call-re)
-     (1 font-lock-function-call-face t))
-    (,typescript--builtin-re (1 font-lock-type-face))
+     (1 'font-lock-function-call-face t))
+    (,typescript--builtin-re (1 'font-lock-type-face))
 
     ;; arrow function
     ("\\(=>\\)"
-     (1 font-lock-keyword-face))
+     (1 'font-lock-keyword-face))
 
     (typescript--match-subst-in-quotes
      (1 'font-lock-keyword-face t)

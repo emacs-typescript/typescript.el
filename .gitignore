@@ -84,3 +84,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.gitignore.io/api/emacs,windows,linux
+
+# ELPA-generated files.
+/typescript-mode-autoloads.el
+/typescript-mode-pkg.el
