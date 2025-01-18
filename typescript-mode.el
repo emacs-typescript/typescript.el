@@ -2176,10 +2176,10 @@ This performs fontification according to `typescript--class-styles'."
     ;;
     ,@typescript--font-lock-keywords-3
 
-    (,typescript--decorator-re (1 font-lock-function-name-face))
-    (,typescript--function-call-re (1 font-lock-function-name-face))
+    (,typescript--decorator-re (1 'font-lock-function-call-face))
+    (,typescript--function-call-re (1 (typescript--function-face)))
     (,(concat "\\(?:\\.\\s-*\\)" typescript--function-call-re)
-     (1 font-lock-function-name-face t))
+     (1 font-lock-function-call-face t))
     (,typescript--builtin-re (1 font-lock-type-face))
 
     ;; arrow function
@@ -2191,6 +2191,22 @@ This performs fontification according to `typescript--class-styles'."
      (2 'default t)
      (3 'font-lock-keyword-face t)))
   "Level four font lock for `typescript-mode'.")
+
+(defun typescript--function-face ()
+  "Return the face to use depending if it's a definition or a call.
+Point is assumed to be right after the open paren."
+  (save-excursion
+    (forward-char -1)
+    (if (condition-case nil
+            (progn
+              (forward-sexp 1)
+              (forward-comment (point-max))
+              (memq (char-after) '(?: ?\{)))
+          (scan-error nil))
+        ;; Looks like a declaration/definition.
+        'font-lock-function-name-face
+      ;; Probably just a call.
+      'font-lock-function-call-face)))
 
 (defconst typescript--font-lock-keywords
   '(typescript--font-lock-keywords-4 typescript--font-lock-keywords-1

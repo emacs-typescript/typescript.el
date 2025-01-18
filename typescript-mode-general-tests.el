@@ -391,15 +391,15 @@ private async innerExecuteAsync<TResponse extends Response, TValue>(endpoint: st
 innerExecuteAsync(x: string, y: boolean, z: number, j?: any): Promise<FResponse> {\n
 console.log(this.methodCall());\n
 snake_cased_function(1, 2, 3)"
-    '(("@decorator" . font-lock-function-name-face)
+    '(("@decorator" . font-lock-function-call-face)
       ("Foo" . font-lock-type-face)
       ("private" . typescript-access-modifier-face)
       ("innerExecuteAsync" . font-lock-function-name-face)
       (("TResponse" "FResponse" "Response" "TValue") . font-lock-type-face)
       ("console" . font-lock-type-face)
       ("this" . typescript-this-face)
-      ("methodCall" . font-lock-function-name-face)
-      ("snake_cased_function" . font-lock-function-name-face)
+      ("methodCall" . font-lock-function-call-face)
+      ("snake_cased_function" . font-lock-function-call-face)
       (("string" "boolean" "number" "any") . typescript-primitive-face)
       (("endpoint" "data") . font-lock-variable-name-face)
       (("<" ">" ",") . nil))))
@@ -413,9 +413,9 @@ app.post()
 app.delete()
 if (true) {}
 // for (abc) {}"
-    (should (eq (get-face-at "get") 'font-lock-function-name-face))
-    (should (eq (get-face-at "post") 'font-lock-function-name-face))
-    (should (eq (get-face-at "delete") 'font-lock-function-name-face))
+    (should (eq (get-face-at "get") 'font-lock-function-call-face))
+    (should (eq (get-face-at "post") 'font-lock-function-call-face))
+    (should (eq (get-face-at "delete") 'font-lock-function-call-face))
     (should (eq (get-face-at "if") 'font-lock-keyword-face))
     (should (eq (get-face-at "for") 'font-lock-comment-face))))
 
@@ -861,7 +861,8 @@ bbb: Bar,
 
 (ert-deftest font-lock/funargs--method--single-line--with-type ()
   (test-with-fontified-buffer
-      "class Foo { foo(aaa: Foo,bbb: Bar,): void {}"
+      "class Foo { foom(aaa: Foo,bbb: Bar,): void {}"
+    (should (eq (get-face-at "foom") 'font-lock-function-name-face))
     (should (eq (get-face-at "aaa") 'font-lock-variable-name-face))
     (should (eq (get-face-at "bbb") 'font-lock-variable-name-face))
     (should (eq (get-face-at "Foo") 'font-lock-type-face))
